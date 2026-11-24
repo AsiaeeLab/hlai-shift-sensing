@@ -1,4 +1,4 @@
-# Paired HLA-I immunopeptidome shifts reveal shared antigen-processing responses across human genotypes
+# HLA-I immunopeptidome shifts reveal shared antigen-processing responses across human genotypes
 
 **Authors:** Amir Asiaee<sup>1,*</sup>, Nebojša Jojić<sup>2</sup>, Elizabeth J. Phillips<sup>3,4</sup>, and Simon A. Mallal<sup>3,4,*</sup>  
 <sup>1</sup>Department of Biostatistics, Vanderbilt University Medical Center, Nashville, TN, USA  
