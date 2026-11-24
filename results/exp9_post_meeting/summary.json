@@ -96,7 +96,7 @@
       "locus": "HLA-A",
       "mean_baseline_share_pct_all35": 75.2910957530558,
       "mean_dw_ifng_pp_n10": -6.7328715659443485,
-      "mean_dw_mapki_pp_n25": -0.7839595601195481,
+      "mean_dw_mapki_pp_n25": -0.7839595601195468,
       "max_dw_ifng_pp": -0.09895655332411712
     },
     {
@@ -110,14 +110,14 @@
       "locus": "HLA-C",
       "mean_baseline_share_pct_all35": 7.150816587196801,
       "mean_dw_ifng_pp_n10": 1.9703040148539142,
-      "mean_dw_mapki_pp_n25": -0.21123681645008266,
+      "mean_dw_mapki_pp_n25": -0.2112368164500827,
       "max_dw_ifng_pp": 6.748633515491953
     },
     {
       "locus": "Unassigned_gt500nM",
       "mean_baseline_share_pct_all35": 3.221015109857909,
       "mean_dw_ifng_pp_n10": -2.7025888026344527,
-      "mean_dw_mapki_pp_n25": -0.018997933711179027,
+      "mean_dw_mapki_pp_n25": -0.018997933711179013,
       "max_dw_ifng_pp": 0.620799034274082
     }
   ]
