@@ -1,0 +1,6 @@
+study,n_contrasts,n_lineages,lineages,n_ifng_pos,n_mapki_neg,within_study_auroc_defined,n_purged_train_contrasts,n_purged_train_lineages,within_study_loso_auroc_PosAA180,within_study_loso_auroc_PosAA180_IL,loso_accuracy_PosAA180,loso_accuracy_PosAA180_IL,mean_loso_score_pos_PosAA180_IL,mean_loso_score_neg_PosAA180_IL
+Bathini2026,3,3,ITO57T;ITO58M;ITO66T,3,0,False,32,13,,,0.3333333333333333,0.3333333333333333,-0.09988948702728266,
+Bernhardt2025,10,3,MAMEL63A;SKMEL28;UKEMEL105B,2,8,True,23,13,0.875,1.0,0.8,0.8,0.5881806691364837,-0.9266947162059141
+Chong2018,1,1,UWB1.289,1,0,False,34,15,,,1.0,1.0,0.9751495131756013,
+Newey2019,8,4,CRC01;CRC04;CRC05;CRC08,4,4,True,27,12,0.5,0.5,0.625,0.625,0.11021212428968392,-0.1653706781927017
+Stopfer2022,13,6,A375;IPC298;RPMI7951;SKMEL2;SKMEL28;SKMEL5,0,13,False,20,10,,,0.7692307692307693,0.7692307692307693,,-1.7995542150985966

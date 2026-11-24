@@ -1,0 +1,334 @@
+---
+title: "Report 03: Cross-Lineage Transfer, Zero-HLA Resistance & Six-Omic Tumor Flux"
+subtitle: "Testing 35 paired contrasts across 16 lineages, SK-Mel-28 wt vs. dr transfer, and Abelin MONTE LUAD routing"
+author: "Amir Asiaee, Nebojša Jojić, Elizabeth J. Phillips, and Simon A. Mallal"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    self_contained: true
+    fig_width: 9.5
+    fig_height: 5.5
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  fig.align = "center", dev = "png", dpi = 150
+)
+
+py_bin <- Sys.getenv("RETICULATE_PYTHON", unset = "")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python3")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python")
+if (nzchar(py_bin)) Sys.setenv(RETICULATE_PYTHON = py_bin)
+Sys.setenv(OMP_NUM_THREADS = "1", MKL_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", PYTHONDONTWRITEBYTECODE = "1")
+
+suppressPackageStartupMessages({
+  library(reticulate)
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(patchwork)
+  library(scales)
+  library(kableExtra)
+})
+
+nz_env <- function(var, fallback) {
+  val <- Sys.getenv(var, unset = "")
+  if (nzchar(val)) val else fallback
+}
+DATA_DIR <- nz_env("DATA_CACHE", nz_env("DATA_DIR", if (dir.exists("../data")) "../data" else "../../data"))
+PROC_DIR <- nz_env("PROCESSED_CACHE", nz_env("PROCESSED_DIR", file.path(DATA_DIR, "processed")))
+RES_DIR  <- nz_env("RESULTS_CACHE", nz_env("RESULTS_DIR", if (dir.exists("../results")) "../results" else "../../results"))
+REPO_DIR <- normalizePath(if (dir.exists("../src")) ".." else "../..", mustWork = FALSE)
+invisible(py_config())
+
+BLUE   <- "#0072B2"
+NAVY   <- "#1B4F72"
+ORANGE <- "#D55E00"
+LBLUE  <- "#56B4E9"
+GRAY   <- "#666666"
+TEAL   <- "#009E73"
+GOLD   <- "#E69F00"
+PURPLE <- "#CC79A7"
+
+theme_report <- function(base_size = 11.5) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title       = element_text(face = "bold", size = base_size + 1),
+      axis.title       = element_text(size = base_size - 0.5),
+      axis.text        = element_text(size = base_size - 1.5, color = "grey20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+      legend.position  = "bottom",
+      legend.title     = element_text(size = base_size - 1.5),
+      legend.text      = element_text(size = base_size - 1.5),
+      plot.tag         = element_text(face = "bold", size = base_size + 1)
+    )
+}
+theme_set(theme_report())
+
+tagged <- function(p) {
+  p + plot_annotation(tag_levels = "A", tag_suffix = ".") &
+    theme(plot.tag = element_text(face = "bold", size = 13))
+}
+
+show_tbl <- function(x, caption = NULL, ...) {
+  kbl(x, caption = caption, booktabs = TRUE, ...) |>
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = FALSE, position = "left")
+}
+```
+
+[Back to Master Index](00_index.html) | [Previous: Report 02](02_presentation_state_model.html) | [Next: Report 04 — Censoring & Gatekeepers](04_censoring_gatekeepers_and_sensitivity.html)
+
+```{python init-paths, include=FALSE}
+import json
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+RES_ROOT = Path(r.RES_DIR)
+
+def res_path(*parts):
+    cand = RES_ROOT.joinpath(*parts)
+    if cand.exists():
+        return cand
+    if parts and parts[0] == "falsification_controls":
+        fb = RES_ROOT.joinpath("exp6_referee_falsifications", *parts[1:])
+        if fb.exists():
+            return fb
+    if (RES_ROOT / "salvage").exists():
+        cand2 = RES_ROOT.joinpath("salvage", *parts)
+        if cand2.exists():
+            return cand2
+        if parts and parts[0] == "falsification_controls":
+            fb2 = RES_ROOT.joinpath("salvage", "exp6_referee_falsifications", *parts[1:])
+            if fb2.exists():
+                return fb2
+    return cand
+
+def load_fc_summary():
+    raw = json.loads(res_path("falsification_controls", "summary.json").read_text())
+    if "disattenuation" in raw:
+        return raw
+    return {
+        "disattenuation": raw["exp6a_disattenuation"],
+        "monte_controls": raw["exp6b_monte_controls"],
+        "newey_external": raw["exp6c_newey_external"],
+        "hap1_2x2_sec61": raw["exp6d_hap1_2x2_sec61"],
+        "persistence_controls": raw["exp6e_persistence_controls"],
+    }
+```
+
+# Cross-Lineage Perturbation Transfer (`35` Contrasts, `16` Lineages) and `I=L` Sensitivity
+
+### Rationale
+
+With single-biopsy profiles bounded near chance by inherited HLA polymorphism and stromal confounding, I next test whether paired compositional shifts $\Delta q_s = \Phi(\pi_{s,1} - \pi_{s,0})$ classify IFN-$\gamma$ versus MAPK inhibition across `35` longitudinal perturbation contrasts spanning `16` human lineages and five independent studies. To prevent information leakage, nested regularization penalties are selected strictly inside outer training splits leaving out entire cell lineages (LOLO) or entire studies (LOSO). I also test mass-spectrometric isoleucine/leucine harmonization (`I=L`) because `Bernhardt Table 4` reports `I/L` ambiguities differently from `Tables 7–11`.
+
+```{python cross-lineage-tables}
+cross_t = pd.read_csv(res_path("exp7_distributional_sensing", "exp7c_cross_lineage_study_transfer.tsv"), sep="\t")
+il_t    = pd.read_csv(res_path("exp7_distributional_sensing", "exp7c_isobaric_il_sensitivity.tsv"), sep="\t")
+loc_t   = pd.read_csv(res_path("exp7_distributional_sensing", "exp7c_within_vs_between_locus_decomposition.tsv"), sep="\t")
+st_sup  = pd.read_csv(res_path("exp8_immunity_bridge", "study_class_support_and_within_study_metrics.csv"))
+ko_dec  = pd.read_csv(res_path("exp8_immunity_bridge", "kitagawa_oaxaca_locus_vs_motif_decomposition.csv"))
+ext_br  = pd.read_csv(res_path("exp8_immunity_bridge", "external_frozen_decoder_bridge_results.csv"))
+ext_pr  = pd.read_csv(res_path("exp8_immunity_bridge", "external_aranha2026_pxd085506_proteome_state.csv"))
+```
+
+```{r show-cross-lineage}
+show_tbl(py$cross_t, digits = 3, caption = "Table 3.1: Nested LOLO (16 lineages) and strict disjoint-study LOSO (5 studies) transfer across all representation tiers.")
+show_tbl(py$st_sup, digits = 3, caption = "Table 3.1b: Exact 35-contrast study roster, class balance (10 IFNg, 25 MAPKi), and within-study LOSO concordance.")
+show_tbl(py$il_t, digits = 3, caption = "Table 3.2: Sensitivity to MS-isobaric Isoleucine = Leucine (I=L) harmonization across all 35 contrasts.")
+show_tbl(py$ko_dec[, c("regime", "sequence_coding", "eval_split", "n_contrasts", "max_identity_residual", "auroc_full_PosAA180", "auroc_projected_between_locus", "auroc_projected_within_locus", "pct_linear_gap_from_between_locus", "pct_linear_gap_from_within_locus")], digits = 3, caption = "Table 3.3: Exact symmetric Kitagawa-Oaxaca locus allocation vs. within-locus motif decomposition projected onto frozen outer-fold decoders.")
+show_tbl(py$loc_t, digits = 3, caption = "Table 3.3b: Standalone refitted within-HLA-A/B vs. between-HLA-A/B/C locus-share models across 20 author-annotated paired contrasts.")
+```
+
+```{r fig-cross-lineage-loc, fig.width=10.5, fig.height=4.4}
+p_cl <- py$cross_t |>
+  mutate(Rep = factor(representation, levels = rev(representation))) |>
+  pivot_longer(c(lolo_auroc, loso_strict_disjoint_lineage_auroc), names_to = "Regime", values_to = "AUROC") |>
+  mutate(Regime = recode(Regime, lolo_auroc = "LOLO (16 lineages)", loso_strict_disjoint_lineage_auroc = "Strict LOSO (5 studies)")) |>
+  ggplot(aes(x = Rep, y = AUROC, fill = Regime)) +
+  geom_col(position = "dodge", width = 0.68) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = GRAY) +
+  coord_flip() +
+  scale_fill_manual(values = c("LOLO (16 lineages)" = BLUE, "Strict LOSO (5 studies)" = TEAL)) +
+  ylim(0, 1.02) +
+  labs(x = NULL, y = "Out-of-lineage AUROC", fill = NULL, title = "Signaling transfer across representation tiers")
+
+p_loc <- py$loc_t |>
+  mutate(Comp = factor(decomposition_component, levels = rev(decomposition_component)),
+         IsBetween = grepl("Between", decomposition_component)) |>
+  ggplot(aes(x = Comp, y = lolo_auroc, fill = IsBetween)) +
+  geom_col(width = 0.58) +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = GRAY) +
+  coord_flip() +
+  scale_fill_manual(values = c("TRUE" = TEAL, "FALSE" = NAVY), guide = "none") +
+  ylim(0, 1.0) +
+  labs(x = NULL, y = "LOLO AUROC (20 contrasts)", title = "Locus reallocation vs. within-locus motifs")
+
+tagged(p_cl + p_loc)
+```
+
+**What do we see?**
+
+Tables 3.1–3.3 and Figure 3.1 establish both cross-lineage transfer performance and its biophysical mechanism:
+
+- **Full `PosAA180` beats anchor-blind `Coarse96` under strict transfer:** Across `35` paired contrasts (`16` human lineages), `PosAA180` achieves `LOLO AUROC = 0.948` (`86%` balanced accuracy) and strict disjoint-study `LOSO AUROC = 0.756` (`68%` balanced accuracy), whereas anchor-blind `Coarse96` drops to `0.724` in `LOLO` and fails at **`0.448`** in strict `LOSO`. P2+P9 anchor marginals alone (`Anchor40`) reach `0.936` in `LOLO` (`0.588` in `LOSO`), confirming that P2/P9 HLA pocket shifts drive cross-lineage decoding.
+- **Isobaric `I=L` harmonization lifts strict cross-study transfer above source-gene shares:** Because `Bernhardt Table 4` (MaxQuant) distinguishes database `I` vs. `L` whereas `Tables 7–11` (Peptide-PRISM) collapse `I -> L`, canonical MS-isobaric `I=L` harmonization eliminates cross-table coding mismatch and raises strict study+lineage-purged `PosAA180 LOSO AUROC` from `0.756` to **`0.788`** (`LOLO = 0.916`, Table 3.2), exceeding `SourceGene_Oracle` (`0.776`) and `Anchor40` (`0.560`).
+- **Exact symmetric Kitagawa–Oaxaca decomposition (`35` donor-genotyped contrasts, Table 3.3):** Projecting the exact algebraic identity $\Delta q = \sum_\ell \Delta w_\ell \bar{\mu}_\ell + \sum_\ell \bar{w}_\ell \Delta\mu_\ell$ (`max residual < 1e-16`, retaining unassigned mass explicitly) onto the frozen outer-fold `PosAA180 (I=L)` decoder shows equal `LOLO` contributions (`51.8%` between-locus / `48.2%` within-locus), whereas under strict cross-study `LOSO`, **`76.8%` (`75.3%` under soft multi-locus assignment) of the frozen linear class gap arises from within-locus motif remodeling** (`AUROC = 0.796` vs. `0.780` between-locus). In parallel standalone refits, assigned coverage alone (`1 df`) has no signal (`LOSO = 0.168`), whereas conditional `HLA-A/B/C` reallocation given assigned (`2 df`) reaches `LOLO = 0.936` and `LOSO = 0.924` (`0.879` / `0.808` on the 20-contrast author subset).
+
+---
+
+# Zero-HLA-Overlap Drug Resistance (`SK-Mel-28 wt vs. dr`) and Cross-Platform Transfer
+
+### Rationale
+
+To prove that paired 9-mer shifts decode signaling state rather than shared HLA binding motifs or drug presence alone, I evaluate an extreme out-of-genotype challenge in `Bernhardt 2025`: train strictly on `Ma-Mel-63a` and `UKE-Mel-105b` (`7` total 4-digit alleles) and score all eight `SK-Mel-28` runs (sensitive `wt` vs. double-resistant `dr` under identical vemurafenib + cobimetinib exposure vs. Mock DMSO at 24 h and 72 h), where `SK-Mel-28` shares **zero** 4-digit HLA alleles with training. I also evaluate cross-platform transfer from `Stopfer 2022` `TMT` positives plus `pSILAC` Mock controls to unseen `Bernhardt pSILAC` runs.
+
+```{python skmel28-challenge}
+res_t = pd.read_csv(res_path("exp7_distributional_sensing", "exp7c_resistance_and_cross_study_challenge.tsv"), sep="\t")
+sk_t  = pd.read_csv(res_path("exp8_immunity_bridge", "skmel28_predictions_with_il_and_unseen_9mer_purge.csv"))
+did_t = pd.read_csv(res_path("exp8_immunity_bridge", "skmel28_mock_adjusted_did.csv"))
+sk_view = sk_t[["contrast_id", "cell_subline", "time_h", "is_drug_exposed", "d_mda_share_pct", "score_R1_Coarse96", "score_R2_PosAA180", "score_R2_PosAA180_IL", "score_R2_PosAA180_IL_Unseen9mersOnly"]]
+```
+
+```{r show-skmel28}
+show_tbl(py$res_t, digits = 4, caption = "Table 3.4: Within-platform zero-HLA-overlap SK-Mel-28 resistance challenge and cross-platform TMT-to-pSILAC transfer.")
+show_tbl(py$sk_view, digits = 3, caption = "Table 3.5: Per-run predictions across all eight SK-Mel-28 runs (including I=L harmonization and unseen-9-mer-only evaluation).")
+show_tbl(py$did_t, digits = 3, caption = "Table 3.5b: Time-matched mock-adjusted difference-in-differences (DiD) on SK-Mel-28 at 24 h and 72 h.")
+show_tbl(py$ext_br[py$ext_br$dataset %in% c("Aranha2026_PXD085470_SpecCount", "Carre2025_PXD045265_RepFreq_AuthorHLA", "Carre2025_PXD045265_PrecursorIntensity_AuthorHLA"), c("dataset", "contrast", "n_9mers_union", "dw_HLA_B", "frozen_score_PosAA180_IL", "frozen_prob_IFNg_PosAA180_IL", "frozen_between_locus_IL", "frozen_within_locus_IL")], digits = 3, caption = "Table 3.5c: Frozen 35-contrast PosAA180 (I=L) decoder and Kitagawa-Oaxaca bridge on external PXD085470 (Aranha 2026 HAP1 +/- IFNg) and PXD045265 (Carre 2025 ECN90 +/- IFNa).")
+show_tbl(py$ext_pr[, c("genotype", "n_quantified_genes_both", "hallmark_ifng_mean_l2fc", "dProt_STAT1", "dProt_PSMB9", "dProt_B2M", "dProt_HLA-A", "dProt_HLA-B", "dProt_TAPBP")], digits = 3, caption = "Table 3.5d: Matched whole-cell DIA proteomics (PXD085506) confirming intracellular Hallmark IFN-gamma and APPM induction across all four HAP1 genotypes.")
+```
+
+```{r fig-skmel28-transfer, fig.width=9.8, fig.height=4.4}
+skp <- py$sk_t |>
+  mutate(Group = factor(case_when(
+    cell_subline == "SKMel28_wt" & is_drug_exposed == 1 ~ "wt + Vemu/Cobi\n(Sensitive)",
+    cell_subline == "SKMel28_dr" & is_drug_exposed == 1 ~ "dr + Vemu/Cobi\n(Resistant)",
+    cell_subline == "SKMel28_wt" & is_drug_exposed == 0 ~ "wt + Mock\n(DMSO)",
+    TRUE ~ "dr + Mock\n(DMSO)"
+  ), levels = c("wt + Mock\n(DMSO)", "dr + Mock\n(DMSO)", "dr + Vemu/Cobi\n(Resistant)", "wt + Vemu/Cobi\n(Sensitive)")))
+
+p_sk1 <- ggplot(skp, aes(x = Group, y = score_R2_PosAA180, color = Group, shape = factor(time_h))) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_point(size = 3.8, position = position_dodge(width = 0.25)) +
+  scale_color_manual(values = c("wt + Vemu/Cobi\n(Sensitive)" = TEAL, "dr + Vemu/Cobi\n(Resistant)" = ORANGE, "wt + Mock\n(DMSO)" = LBLUE, "dr + Mock\n(DMSO)" = GRAY)) +
+  guides(color = "none") +
+  labs(x = NULL, y = "Out-of-lineage PosAA180 score", shape = "Time (h)", title = "PosAA180 transfer (0 shared 4-digit HLAs)")
+
+p_sk2 <- ggplot(skp, aes(x = Group, y = d_mda_share_pct, color = Group, shape = factor(time_h))) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_point(size = 3.8, position = position_dodge(width = 0.25)) +
+  scale_color_manual(values = c("wt + Vemu/Cobi\n(Sensitive)" = TEAL, "dr + Vemu/Cobi\n(Resistant)" = ORANGE, "wt + Mock\n(DMSO)" = LBLUE, "dr + Mock\n(DMSO)" = GRAY)) +
+  guides(color = "none") +
+  labs(x = NULL, y = "Melanoma diff. antigen (MDA) delta share (%)", shape = "Time (h)", title = "8-gene MDA share transfer across platforms")
+
+tagged(p_sk1 + p_sk2 + plot_layout(guides = "collect")) & theme(legend.position = "bottom")
+```
+
+**What do we see?**
+
+Tables 3.4–3.5 and Figure 3.2 demonstrate out-of-genotype biological state decoding under complete four-digit HLA disjointness:
+
+- **Zero-HLA-overlap `SK-Mel-28 wt vs. dr` (`exact p = 0.0357`):** Trained strictly on `Ma-Mel-63a + UKE-Mel-105b` (`n = 14`), `PosAA180` scores both sensitive `wt + VemuCobi` runs sharply positive (`+8.676` at 24 h, `+9.624` at 72 h, mean `+9.150`), whereas double-resistant `dr + VemuCobi` under identical drug treatment sits at `-3.332` (24 h) and `+0.912` (72 h, mean `-1.210`, mean gap `+10.360`) and all four DMSO controls stay negative (`-8.568` to `-5.747`). This yields **`AUROC = 1.000`** (`concordance = 1.00`, combinatorial `p = 1/28 = 0.0357`), identical to the prespecified 8-gene melanoma differentiation antigen axis (`R5b`, `+1.870%` / `+4.832%` in `wt` vs. `+0.318%` / `+0.860%` in `dr`).
+- **Disqualified drug-exposure shortcut and anchor-blind `Coarse96`:** A model matching drug presence alone outputs `+5.527` symmetrically for both `wt` and `dr` treated runs (`treated concordance = 0.500`, `p = 0.1786`), while `Coarse96` collapses to `AUROC = 0.250` (`concordance = 0.500`).
+- **Cross-platform `TMT -> pSILAC` boundary:** Whole-repertoire `PosAA180` trained on `Stopfer 2022` `TMT` drops to `0.667` on `SK-Mel-28` (`0.417` across all 14 unseen Bernhardt runs) due to quantitation chemistry shifts, whereas normalized `R5b` gene-share transfers directly across platforms (`1.000` on `SK-Mel-28`, `0.917` across all 14 unseen `pSILAC` runs).
+
+---
+
+# Six-Omic Tumor Degradative Flux and Endogenous ERAP1 Trimming (`Abelin MONTE` LUAD)
+
+### Rationale
+
+To establish the in vivo biochemical channels feeding HLA-I surface dynamics inside human tumors, I examine all six paired molecular layers across `N=10` primary lung adenocarcinomas (`Abelin MONTE`): (1) across-gene regressions (`N=7,594` proteins) comparing `HLA-I` vs. `HLA-II` peptide breadth against `K-epsilon-GG` ubiquitylation, phosphorylation, acetylation, and `UniProt` secretory/ER/membrane topology—both before and after adjusting for $\log_2(1 + N_{\mathrm{Lys}})$ lysine residue density; (2) within-gene across-patient regressions comparing independent non-depleted `noIP` vs. serial flow-through `FT` tissue aliquots alongside exact Gauss-Seidel two-way demeaning with Cameron-Gelbach-Miller (2011) two-way clustered standard errors and `2SLS` instrumental-variable (`FT -> noIP`) checks; and (3) patient-level correlations linking tumor `APPM` core proteome to `HLA-I` repertoire breadth (with tumor purity and `ESTIMATE` immune controls + 10-tumor jackknife) and `ERAP1` protein levels to peptide length within all `16` shared four-digit HLA-I alleles.
+
+```{python monte-six-omic}
+m2_reg  = pd.read_csv(res_path("exp2_monte_degradative_flux", "across_gene_ptm_regression.tsv"), sep="\t")
+m2_flux = pd.read_csv(res_path("exp2_monte_degradative_flux", "within_gene_across_patient_flux.tsv"), sep="\t")
+m2_appm = pd.read_csv(res_path("exp2_monte_degradative_flux", "monte_appm_readout_tests.tsv"), sep="\t")
+m2_pt   = pd.read_csv(res_path("exp2_monte_degradative_flux", "monte_patient_appm_and_ligandome.tsv"), sep="\t")
+m_lys   = pd.read_csv(res_path("falsification_controls", "monte_lysine_controlled_regression.tsv"), sep="\t")
+m_al    = pd.read_csv(res_path("falsification_controls", "monte_within_exact_allele_erap1.tsv"), sep="\t")
+m_jk    = pd.read_csv(res_path("falsification_controls", "monte_jackknife_sensitivity.tsv"), sep="\t")
+fc_sum  = load_fc_summary()
+mc      = fc_sum["monte_controls"]
+
+s8_mon = json.loads(res_path("exp8_immunity_bridge", "summary.json").read_text())["monte_erap1_exact_10factorial_permutation"]
+m2_ctrl_tbl = pd.DataFrame([
+    {"Check": "Lysine-adjusted K-eps-GG HLA-I beta", "Estimate": round(mc["lysine_controlled_hlai_ub_beta"], 4), "Detail": f"p = {mc['lysine_controlled_hlai_ub_p']:.2e}; diff (I-II) beta = {mc['lysine_controlled_diff_ub_beta']:.4f} (p={mc['lysine_controlled_diff_ub_p']:.4f})"},
+    {"Check": "Gauss-Seidel 2-way FE within-gene Ub (noIP, N=9,910)", "Estimate": round(mc["exact_2way_noip_beta_ub"], 4), "Detail": f"2-way CGM SE = {mc['exact_2way_noip_se2way_ub']:.4f}; Prot beta = {mc['exact_2way_noip_beta_prot']:.4f}"},
+    {"Check": "2SLS IV (FT instrumenting noIP)", "Estimate": round(mc["iv_2sls_beta_prot"], 4), "Detail": f"Ub IV beta = {mc['iv_2sls_beta_ub']:.4f}; FT-noIP residual r = {mc['prot_ft_noip_reliability']:.3f}"},
+    {"Check": f"Within-exact-4-digit-allele ERAP1 length ({mc['within_exact_allele_n_alleles']} alleles, N={mc['within_exact_allele_n_obs']})", "Estimate": round(mc["within_exact_allele_erap1_len_r"], 4), "Detail": f"Exact 10! whole-patient permutation P = {s8_mon['exact_two_sided_patient_permutation_p']:.5f} (3,628,800 perms)"},
+    {"Check": "APPM-breadth partial r | Tumor Purity", "Estimate": round(mc["appm_breadth_partial_r_purity"], 4), "Detail": f"p = {mc['appm_breadth_partial_p_purity']:.4f}; ImmuneScore partial r = {mc['appm_breadth_partial_r_immune']:.4f} (p={mc['appm_breadth_partial_p_immune']:.4f})"},
+])
+```
+
+```{r show-monte}
+show_tbl(py$m2_reg |> filter(outcome %in% c("log2_hlai_peptides", "log2_hlaii_peptides", "hlai_minus_hlaii")), digits = 4, caption = "Table 3.6: Baseline across-gene multi-PTM regressions (N=7,594 LUAD proteins) with HC3 SEs.")
+show_tbl(py$m_lys, digits = 4, caption = "Table 3.7: Lysine-residue-adjusted multivariable PTM regressions across N=7,594 proteins.")
+show_tbl(py$m2_flux, digits = 4, caption = "Table 3.8: Within-gene across-patient HLA-I vs. HLA-II flux regressions (FT and independent noIP aliquots).")
+show_tbl(py$m2_appm, digits = 4, caption = "Table 3.9: Tumor APPM breadth and endogenous ERAP1 length readout across N=10 LUAD tumors.")
+show_tbl(py$m2_ctrl_tbl, digits = 4, caption = "Table 3.10: Econometric confounder, CGM two-way SE, 2SLS IV, and within-allele ERAP1 diagnostics.")
+```
+
+```{r fig-monte-panels, fig.width=10.6, fig.height=8.0}
+reg_p <- py$m2_reg |>
+  filter(outcome %in% c("log2_hlai_peptides", "log2_hlaii_peptides"), predictor != "const") |>
+  mutate(Class = ifelse(outcome == "log2_hlai_peptides", "HLA-I yield", "HLA-II yield"),
+         Pred = recode(predictor, log2_mw = "log2(MW)", log2_spec_abundance = "Spectral abund.", log2_ub_sites = "K-eps-GG Ub", log2_phos_sites = "Phospho", log2_acetyl_sites = "Acetyl", secretory_er_membrane = "Secretory/ER/Memb."))
+
+pM1 <- ggplot(reg_p, aes(x = reorder(Pred, std_beta), y = std_beta, color = Class)) +
+  geom_hline(yintercept = 0, linetype = "dashed", color = GRAY) +
+  geom_errorbar(aes(ymin = ci95_low, ymax = ci95_high), width = 0.2, position = position_dodge(width = 0.45), linewidth = 0.8) +
+  geom_point(size = 2.6, position = position_dodge(width = 0.45)) +
+  coord_flip() +
+  scale_color_manual(values = c("HLA-I yield" = BLUE, "HLA-II yield" = PURPLE)) +
+  labs(x = NULL, y = "Standardized beta (95% HC3 CI)", color = NULL, title = "Across-gene PTM & topology routing (N=7,594)")
+
+pM2 <- ggplot(py$m2_pt, aes(x = appm_core_prot_noIP, y = log2_n_hlai_peptides)) +
+  geom_smooth(method = "lm", se = TRUE, color = TEAL, fill = LBLUE, alpha = 0.2) +
+  geom_point(size = 2.8, color = NAVY) +
+  geom_text(aes(label = gsub("^C3L-|^C3N-", "", sample_id)), vjust = -0.7, size = 2.8) +
+  labs(x = "Independent noIP tumor APPM core protein", y = "log2(HLA-I peptide breadth)", title = "Tumor APPM core vs. HLA-I breadth (N=10)")
+
+pM3 <- ggplot(py$m_al, aes(x = erap1_within_allele, y = len_within_allele)) +
+  geom_smooth(method = "lm", se = TRUE, color = ORANGE, fill = GOLD, alpha = 0.2) +
+  geom_point(size = 2.4, color = BLUE, alpha = 0.85) +
+  labs(x = "Within-allele demeaned ERAP1 protein (noIP)", y = "Within-allele demeaned peptide length (aa)", title = "Within-4-digit-allele ERAP1 trimming (16 alleles)")
+
+pM4 <- py$m_jk |>
+  pivot_longer(c(r_appm_breadth_noIP, r_erap1_len_noIP), names_to = "Metric", values_to = "r") |>
+  mutate(Metric = recode(Metric, r_appm_breadth_noIP = "APPM vs. breadth (noIP)", r_erap1_len_noIP = "ERAP1 vs. length (noIP)")) |>
+  ggplot(aes(x = omitted_patient, y = r, color = Metric, group = Metric)) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2.2) +
+  scale_color_manual(values = c("APPM vs. breadth (noIP)" = TEAL, "ERAP1 vs. length (noIP)" = BLUE)) +
+  theme(axis.text.x = element_text(angle = 35, hjust = 1)) +
+  labs(x = "Omitted LUAD patient", y = "Leave-one-tumor-out Pearson r", color = NULL, title = "10-tumor jackknife stability")
+
+tagged((pM1 + pM2) / (pM3 + pM4))
+```
+
+**What do we see?**
+
+Tables 3.6–3.10 and Figure 3.3 connect surface HLA-I flux directly to ubiquitin-proteasome turnover and ERAP1 trimming in primary LUAD tumors (`N = 10`):
+
+- **Compartment-specific six-omic routing across `N = 7,594` proteins (Tables 3.6–3.7):** `HLA-I` peptide breadth tracks molecular weight (`+0.4704`), spectral protein abundance (`+0.3512`), and **`K-epsilon-GG` ubiquitylation (`std_beta = +0.1993`, `t = 18.72`)**, with zero secretory/ER enrichment (`-0.0068`, `p = 0.475`) or lysine-acetylation coupling (`-0.0060`, `p = 0.596`). By contrast, `HLA-II` breadth enriches sharply for secretory/ER/membrane topology (`+0.2532`, `t = 23.00`) and lysine acetylation (`+0.1604`), so the paired `(HLA-I - HLA-II)` differential yields positive `K-epsilon-GG` routing (`+0.0444`, `p = 0.0014` after explicit lysine-count adjustment, where `K-epsilon-GG -> HLA-I` stays `+0.1994`, `p = 1.29e-76`) and negative secretory/acetyl contrast (`-0.2022` and `-0.1345`).
+- **Within-gene across-patient ubiquitin flux (Tables 3.8 & 3.10):** Conditioning on both gene and patient fixed effects in independent `noIP` aliquots (`N = 10,056` pairs, `1,816` genes) yields positive `HLA-I` ubiquitylation coupling (`beta_ub = +0.0464`, `gene-clustered p = 0.0122`, `8/10` tumors positive, `signflip p = 0.0312`), replicated in `FT` (`+0.0416`, `p = 0.0130`), preserved under Gauss-Seidel two-way demeaning with CGM two-way SEs (`+0.0565`, `SE = 0.0168`), and confirmed by `2SLS` IV (`Ub IV beta = +0.0457` when `FT` instruments `noIP`; residual reliability $r = 0.824$). Even for identical `HLA-I` peptides (`356` sequences, `1,609` obs), parent proteome and `K-epsilon-GG` explain only `0.71%` (`R^2 = 0.0071`) of intensity variation.
+- **Tumor `APPM` breadth and within-allele `ERAP1` trimming (Tables 3.9–3.10):** Patient-level `APPM` core protein abundance predicts $\log_2$ `HLA-I` breadth across all `10` tumors ($r = +0.7615$, `perm p = 0.0104` in `FT`; $r = +0.7288$ in `noIP`), holding after conditioning on tumor purity (`partial r = +0.7260`, `p = 0.0268`) or `ESTIMATE` ImmuneScore ($r = +0.7237$, `p = 0.0275`). Meanwhile, endogenous `ERAP1` protein inversely predicts peptide length (`noIP r = -0.6783`, `p = 0.0283`) and holds strongly **within exact 4-digit alleles** across `16` shared alleles (`N = 35` allele-patient cells, $r = -0.7452$, `OLS p = 2.83e-07`, patient-clustered `p = 2.22e-04`), staying negative across every 10-tumor jackknife drop.
+
+**Decision point:**
+
+Paired compositional shifts generalize across lineages (`LOLO 0.948`) and zero shared HLA alleles (`SK-Mel-28 1.000`) through `HLA-A/B/C` locus shifts (`0.889`), while tumor `K-epsilon-GG` and `ERAP1` link surface peptides to intracellular routing. I next move to [Report 04](04_censoring_gatekeepers_and_sensitivity.html) to examine left-censored detection attrition, linear molar stoichiometry, `HAP1` `Sec61` gatekeepers, and ablation/depth curves.

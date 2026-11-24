@@ -1,0 +1,37 @@
+{
+  "figures": [
+    "fig1_concentration_decoupling.pdf",
+    "fig2_monte_degradative_flux.pdf",
+    "fig3_inflammatory_censoring_routing.pdf",
+    "fig4_hap1_appm_gatekeepers.pdf",
+    "fig5_persistence_prediction.pdf",
+    "figS1_disattenuation_and_noise_null.pdf",
+    "figS2_monte_allele_and_jackknife.pdf",
+    "figS3_stoichiometry_and_newey_validation.pdf",
+    "figS4_sec61_2x2_and_tercile_persistence.pdf",
+    "figS5_followup_temporal_and_locus.pdf",
+    "fig_distributional_sensing_scope.pdf",
+    "fig_representation_anatomy_and_logos.pdf",
+    "graphical_abstract.pdf"
+  ],
+  "svg_figures": [
+    "fig1_concentration_decoupling.svg",
+    "fig_representation_anatomy_and_logos.svg",
+    "graphical_abstract.svg"
+  ],
+  "png_previews": [
+    "fig1_concentration_decoupling.png",
+    "fig2_monte_degradative_flux.png",
+    "fig3_inflammatory_censoring_routing.png",
+    "fig4_hap1_appm_gatekeepers.png",
+    "fig5_persistence_prediction.png",
+    "figS1_disattenuation_and_noise_null.png",
+    "figS2_monte_allele_and_jackknife.png",
+    "figS3_stoichiometry_and_newey_validation.png",
+    "figS4_sec61_2x2_and_tercile_persistence.png",
+    "figS5_followup_temporal_and_locus.png",
+    "fig_distributional_sensing_scope.png",
+    "fig_representation_anatomy_and_logos.png",
+    "graphical_abstract.png"
+  ]
+}

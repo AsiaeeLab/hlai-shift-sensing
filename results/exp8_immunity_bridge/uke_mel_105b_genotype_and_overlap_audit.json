@@ -1,0 +1,40 @@
+{
+  "cell_line": "UKE-Mel-105b",
+  "source_paper_prose_alleles": [
+    "HLA-A*03:01",
+    "HLA-B*25:01",
+    "HLA-C*04:01"
+  ],
+  "ipd_imgt_hla_records_for_B2501": 0,
+  "deposited_table8_observed_alleles": {
+    "HLA-A*03:01": 6325,
+    "HLA-B*35:01": 940,
+    "HLA-C*04:01": 532,
+    "NaN": 59,
+    "HLA-A*02:01": 30
+  },
+  "table8_B3501_unique_9mers": 400,
+  "shared_4digit_alleles_with_SKMel28_under_either_list": 0,
+  "peptide_overlap_reconciliation": {
+    "all_staged_bernhardt_rows_Tables4_7_12": {
+      "train_9mers": 7909,
+      "skmel28_9mers": 3490,
+      "shared_9mers": 961
+    },
+    "contrast_eligible_resistance_benchmark_Tables7_11": {
+      "train_9mers": 6158,
+      "skmel28_9mers": 3167,
+      "shared_9mers": 869
+    },
+    "isobaric_IL_harmonized_resistance_benchmark": {
+      "train_unique_IL_9mers": 5346,
+      "skmel28_unique_IL_9mers": 3167,
+      "shared_unique_IL_9mers": 877,
+      "skmel28_db_9mers_matching_train_IL": 877
+    }
+  },
+  "skmel28_auroc_8runs_PosAA180_DB": 1.0,
+  "skmel28_auroc_8runs_PosAA180_IL": 1.0,
+  "skmel28_auroc_8runs_PosAA180_IL_Unseen9mersOnly": 1.0,
+  "skmel28_auroc_4drug_runs_only_PosAA180_IL_Unseen9mersOnly": 1.0
+}

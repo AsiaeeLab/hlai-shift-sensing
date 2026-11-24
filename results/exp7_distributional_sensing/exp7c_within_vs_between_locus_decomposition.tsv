@@ -1,0 +1,5 @@
+decomposition_component	n_allele_annotated_contrasts	n_unique_lineages	lolo_auroc
+Between_HLA_Locus_Share_Only_3df	20	10	0.8888888888888888
+Within_HLA_A_PosAA180_Only	20	10	0.5656565656565656
+Within_HLA_B_PosAA180_Only	20	10	0.36363636363636365
+Whole_Repertoire_PosAA180	20	10	0.7575757575757576

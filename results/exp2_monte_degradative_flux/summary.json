@@ -1,0 +1,9 @@
+{
+  "n_genes_across_gene_model": 7594,
+  "hlai_ub_std_beta": 0.19934191200012638,
+  "within_gene_noip_hlai_beta_ub": 0.04636123461065533,
+  "within_gene_noip_hlai_p_ub": 0.012238544202363592,
+  "identical_peptide_r2": 0.007142013328910735,
+  "erap1_vs_mean_len_noip_r": -0.6783328744466347,
+  "appm_vs_breadth_ft_r": 0.7614709888440705
+}

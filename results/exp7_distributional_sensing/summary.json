@@ -1,0 +1,724 @@
+{
+  "n_paired_shift_contrasts_catalog": 50,
+  "exp7a_followup_elasticity_and_ub": {
+    "skmel5_meki_prot_r2": 0.030958087025536107,
+    "skmel5_meki_prot_disatt_r2": 0.038110392140926846,
+    "skmel5_meki_rna_r2": 0.06220508993297174,
+    "skmel5_meki_sibling_gt2fold": 0.03663003663003663,
+    "skmel5_dynamic_ub": {
+      "n_peptides": 429,
+      "n_genes": 193,
+      "std_beta_dProt": 0.31492222651864105,
+      "p_dProt": 0.0624418761671563,
+      "std_beta_dUb": -0.1959991407596471,
+      "p_dUb": 0.26947918509729685,
+      "r2_dProt_only": 0.03131480409731599,
+      "r2_dProt_plus_dUb": 0.0506968620918502
+    },
+    "bernhardt_mamel63a_ifng": [
+      {
+        "cohort": "Bernhardt2025_MaMel63a_IFNg_24h",
+        "n_peptides": 2054,
+        "n_genes": 1223,
+        "slope_dPep_dProt": 0.2096789957622051,
+        "r_squared": 0.0035169507238390035,
+        "frac_multi_genes_gt_2fold": 0.6036036036036037,
+        "n_same_gene_AB_pairs": 182,
+        "mean_same_gene_B_minus_A": 0.6879907513337766,
+        "frac_B_gt_A": 0.7032967032967034,
+        "wilcoxon_p_B_vs_A": 8.911220140983006e-09
+      },
+      {
+        "cohort": "Bernhardt2025_MaMel63a_IFNg_72h",
+        "n_peptides": 1917,
+        "n_genes": 1193,
+        "slope_dPep_dProt": 0.37009375916355536,
+        "r_squared": 0.016700501879548996,
+        "frac_multi_genes_gt_2fold": 0.6666666666666666,
+        "n_same_gene_AB_pairs": 162,
+        "mean_same_gene_B_minus_A": 0.24368774916321667,
+        "frac_B_gt_A": 0.5370370370370371,
+        "wilcoxon_p_B_vs_A": 0.08214922978547057
+      }
+    ]
+  },
+  "exp7b_newey_ladder": [
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R0_Quantity_Length",
+      "single_sample_loo_bal_acc": 0.5555555555555556,
+      "single_sample_loo_auroc": 0.7256944444444444,
+      "paired_shift_loo_concordance": 0.9375,
+      "paired_shift_worst_org": 0.75
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R1_Coarse96",
+      "single_sample_loo_bal_acc": 0.59375,
+      "single_sample_loo_auroc": 0.7291666666666666,
+      "paired_shift_loo_concordance": 0.984375,
+      "paired_shift_worst_org": 0.9375
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R1b_Coarse96_Presence",
+      "single_sample_loo_bal_acc": 0.4722222222222222,
+      "single_sample_loo_auroc": 0.5659722222222222,
+      "paired_shift_loo_concordance": 0.9791666666666666,
+      "paired_shift_worst_org": 0.9166666666666666
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R1c_Coarse96_Sub500",
+      "single_sample_loo_bal_acc": 0.4027777777777778,
+      "single_sample_loo_auroc": 0.4097222222222222,
+      "paired_shift_loo_concordance": 0.6666666666666666,
+      "paired_shift_worst_org": 0.375
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R2a_AA20",
+      "single_sample_loo_bal_acc": 0.59375,
+      "single_sample_loo_auroc": 0.8680555555555556,
+      "paired_shift_loo_concordance": 1.0,
+      "paired_shift_worst_org": 1.0
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R2b_Pos80_Internal",
+      "single_sample_loo_bal_acc": 0.71875,
+      "single_sample_loo_auroc": 0.7256944444444444,
+      "paired_shift_loo_concordance": 0.8541666666666666,
+      "paired_shift_worst_org": 0.6666666666666666
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R2c_Anchor40",
+      "single_sample_loo_bal_acc": 0.6284722222222222,
+      "single_sample_loo_auroc": 0.65625,
+      "paired_shift_loo_concordance": 0.8958333333333334,
+      "paired_shift_worst_org": 0.75
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R2_PosAA180",
+      "single_sample_loo_bal_acc": 0.59375,
+      "single_sample_loo_auroc": 0.7881944444444444,
+      "paired_shift_loo_concordance": 0.9375,
+      "paired_shift_worst_org": 0.75
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R4_Peptide_Identity",
+      "single_sample_loo_bal_acc": 0.6909722222222222,
+      "single_sample_loo_auroc": 0.7256944444444444,
+      "paired_shift_loo_concordance": 0.909375,
+      "paired_shift_worst_org": 0.6875
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R5_SourceGene_Oracle",
+      "single_sample_loo_bal_acc": 0.6875,
+      "single_sample_loo_auroc": 0.7708333333333334,
+      "paired_shift_loo_concordance": 0.75,
+      "paired_shift_worst_org": 0.5
+    },
+    {
+      "cohort_task": "Newey_CRC_PDO_IFNg_vs_MEKi",
+      "representation": "R3_Nonlinear_RBF_PosAA180",
+      "single_sample_loo_bal_acc": 0.5,
+      "single_sample_loo_auroc": 0.5729166666666667,
+      "paired_shift_loo_concordance": 0.79375,
+      "paired_shift_worst_org": 0.425
+    }
+  ],
+  "exp7b_velz_ladder": [
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R0_Quantity_Depth",
+      "prolif_rel_mse_vs_subgroup": 1.000013732071989,
+      "ifng_rel_mse_vs_subgroup": 1.0000665905284787,
+      "subgroup_k4_bal_acc": 0.32291666666666663
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R1_Coarse96",
+      "prolif_rel_mse_vs_subgroup": 0.9936546339371096,
+      "ifng_rel_mse_vs_subgroup": 0.8994329352997317,
+      "subgroup_k4_bal_acc": 0.2986111111111111
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R2a_AA20",
+      "prolif_rel_mse_vs_subgroup": 1.0020046024455906,
+      "ifng_rel_mse_vs_subgroup": 1.0104509207148609,
+      "subgroup_k4_bal_acc": 0.2996031746031746
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R2_PosAA180",
+      "prolif_rel_mse_vs_subgroup": 1.0079510949184403,
+      "ifng_rel_mse_vs_subgroup": 1.021218325287257,
+      "subgroup_k4_bal_acc": 0.24305555555555555
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R4_Peptide_Identity",
+      "prolif_rel_mse_vs_subgroup": 0.9913875097499093,
+      "ifng_rel_mse_vs_subgroup": 1.1523547675200452,
+      "subgroup_k4_bal_acc": 0.2996031746031746
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R5_SourceGene_Oracle",
+      "prolif_rel_mse_vs_subgroup": 0.9940871806295366,
+      "ifng_rel_mse_vs_subgroup": 1.1030425344793497,
+      "subgroup_k4_bal_acc": 0.39781746031746035
+    },
+    {
+      "cohort_task": "Velz_N28_CrossPatient_BaselineFree",
+      "representation": "R3_Nonlinear_RBF_PosAA180",
+      "prolif_rel_mse_vs_subgroup": 0.9981898797252825,
+      "ifng_rel_mse_vs_subgroup": 1.0048658333159286,
+      "subgroup_k4_bal_acc": 0.21180555555555555
+    }
+  ],
+  "exp7c_transfer_and_resistance": {
+    "resistance_challenge": [
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "Drug_Exposure_Shortcut",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.8333333333333334,
+        "exact_combinatorial_p_2of8": 0.17857142857142858,
+        "concordance_treated_wt_vs_dr": 0.5,
+        "mean_score_wt_drug": 5.526790681428845,
+        "mean_score_dr_drug": 5.526790681428845,
+        "score_gap_wt_minus_dr": 0.0
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R0_Quantity_SILAC_Nuisance",
+        "selected_C": 1.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.5,
+        "exact_combinatorial_p_2of8": 0.5714285714285714,
+        "concordance_treated_wt_vs_dr": 0.5,
+        "mean_score_wt_drug": -2.7889128657669824,
+        "mean_score_dr_drug": -2.3776373911104525,
+        "score_gap_wt_minus_dr": -0.4112754746565299
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R1_Coarse96",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.25,
+        "exact_combinatorial_p_2of8": 0.8571428571428571,
+        "concordance_treated_wt_vs_dr": 0.5,
+        "mean_score_wt_drug": -6.780986153107669,
+        "mean_score_dr_drug": -8.76339665041176,
+        "score_gap_wt_minus_dr": 1.982410497304091
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R2a_AA20",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.16666666666666669,
+        "exact_combinatorial_p_2of8": 0.9285714285714286,
+        "concordance_treated_wt_vs_dr": 0.0,
+        "mean_score_wt_drug": -7.018003313743817,
+        "mean_score_dr_drug": -0.5736034574882354,
+        "score_gap_wt_minus_dr": -6.444399856255582
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R2b_Pos80_Internal",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.5833333333333333,
+        "exact_combinatorial_p_2of8": 0.42857142857142855,
+        "concordance_treated_wt_vs_dr": 0.75,
+        "mean_score_wt_drug": -5.523603194901898,
+        "mean_score_dr_drug": -6.0432361811362165,
+        "score_gap_wt_minus_dr": 0.5196329862343188
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R2c_Anchor40",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.6666666666666667,
+        "exact_combinatorial_p_2of8": 0.32142857142857145,
+        "concordance_treated_wt_vs_dr": 0.25,
+        "mean_score_wt_drug": 1.9611520991581277,
+        "mean_score_dr_drug": 4.269366073004814,
+        "score_gap_wt_minus_dr": -2.3082139738466867
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R2_PosAA180",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 1.0,
+        "exact_combinatorial_p_2of8": 0.03571428571428571,
+        "concordance_treated_wt_vs_dr": 1.0,
+        "mean_score_wt_drug": 9.150041276798214,
+        "mean_score_dr_drug": -1.2098487072373376,
+        "score_gap_wt_minus_dr": 10.359889984035553
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R4_Peptide_Identity",
+        "selected_C": 1.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.33333333333333337,
+        "exact_combinatorial_p_2of8": 0.7857142857142857,
+        "concordance_treated_wt_vs_dr": 0.0,
+        "mean_score_wt_drug": -2.794845156177598,
+        "mean_score_dr_drug": 4.292179344399659,
+        "score_gap_wt_minus_dr": -7.087024500577257
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R5_SourceGene_Oracle",
+        "selected_C": 100.0,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.7500000000000001,
+        "exact_combinatorial_p_2of8": 0.21428571428571427,
+        "concordance_treated_wt_vs_dr": 1.0,
+        "mean_score_wt_drug": 168.93725187739298,
+        "mean_score_dr_drug": -40.55396442768725,
+        "score_gap_wt_minus_dr": 209.49121630508023
+      },
+      {
+        "training_design": "Bernhardt_MaMel63a+UKEMel105b_to_SKMel28_ZeroHLAOverlap",
+        "representation": "R5b_Prespecified_MDA_Axis",
+        "selected_C": NaN,
+        "n_train": 14,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 1.0,
+        "exact_combinatorial_p_2of8": 0.03571428571428571,
+        "concordance_treated_wt_vs_dr": 1.0,
+        "mean_score_wt_drug": 0.03350841385565277,
+        "mean_score_dr_drug": 0.005892161478149239,
+        "score_gap_wt_minus_dr": 0.027616252377503533
+      },
+      {
+        "training_design": "CrossPlatform_Stopfer2022_TMT_to_Bernhardt2025_pSILAC",
+        "representation": "R1_Coarse96",
+        "selected_C": 0.01,
+        "n_train": 19,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.5833333333333333,
+        "auroc_unseen_bernhardt_14runs": 0.4791666666666667,
+        "exact_combinatorial_p_2of8": NaN,
+        "concordance_treated_wt_vs_dr": 0.5,
+        "mean_score_wt_drug": 0.05853851942467636,
+        "mean_score_dr_drug": -0.23643094200211273,
+        "score_gap_wt_minus_dr": 0.2949694614267891
+      },
+      {
+        "training_design": "CrossPlatform_Stopfer2022_TMT_to_Bernhardt2025_pSILAC",
+        "representation": "R2_PosAA180",
+        "selected_C": 0.01,
+        "n_train": 19,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 0.6666666666666667,
+        "auroc_unseen_bernhardt_14runs": 0.41666666666666663,
+        "exact_combinatorial_p_2of8": NaN,
+        "concordance_treated_wt_vs_dr": 0.5,
+        "mean_score_wt_drug": 0.47085704923266747,
+        "mean_score_dr_drug": 0.8457502962246171,
+        "score_gap_wt_minus_dr": -0.3748932469919496
+      },
+      {
+        "training_design": "CrossPlatform_Stopfer2022_TMT_to_Bernhardt2025_pSILAC",
+        "representation": "R5b_Prespecified_MDA_Axis",
+        "selected_C": NaN,
+        "n_train": 19,
+        "n_test_skmel28": 8,
+        "auroc_all_skmel28_8runs": 1.0,
+        "auroc_unseen_bernhardt_14runs": 0.9166666666666667,
+        "exact_combinatorial_p_2of8": NaN,
+        "concordance_treated_wt_vs_dr": 1.0,
+        "mean_score_wt_drug": 0.03350841385565277,
+        "mean_score_dr_drug": 0.005892161478149239,
+        "score_gap_wt_minus_dr": 0.027616252377503533
+      }
+    ],
+    "cross_lineage_ifng_vs_mapki": [
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R0_Quantity_Nuisance",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.708,
+        "lolo_bal_acc": 0.78,
+        "loso_strict_disjoint_lineage_auroc": 0.6719999999999999,
+        "loso_strict_disjoint_lineage_bal_acc": 0.64
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R1_Coarse96",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.724,
+        "lolo_bal_acc": 0.63,
+        "loso_strict_disjoint_lineage_auroc": 0.448,
+        "loso_strict_disjoint_lineage_bal_acc": 0.48000000000000004
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R2a_AA20",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.6479999999999999,
+        "lolo_bal_acc": 0.66,
+        "loso_strict_disjoint_lineage_auroc": 0.408,
+        "loso_strict_disjoint_lineage_bal_acc": 0.59
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R2b_Pos80_Internal",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.724,
+        "lolo_bal_acc": 0.69,
+        "loso_strict_disjoint_lineage_auroc": 0.528,
+        "loso_strict_disjoint_lineage_bal_acc": 0.5
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R2c_Anchor40",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.9359999999999999,
+        "lolo_bal_acc": 0.83,
+        "loso_strict_disjoint_lineage_auroc": 0.588,
+        "loso_strict_disjoint_lineage_bal_acc": 0.6699999999999999
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R2_PosAA180",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.948,
+        "lolo_bal_acc": 0.8600000000000001,
+        "loso_strict_disjoint_lineage_auroc": 0.756,
+        "loso_strict_disjoint_lineage_bal_acc": 0.6799999999999999
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R4_Peptide_Identity",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.7320000000000001,
+        "lolo_bal_acc": 0.72,
+        "loso_strict_disjoint_lineage_auroc": 0.628,
+        "loso_strict_disjoint_lineage_bal_acc": 0.6799999999999999
+      },
+      {
+        "task": "CrossLineage_PairedShift_IFNg_vs_MAPKi",
+        "representation": "R5_SourceGene_Oracle",
+        "n_contrasts": 35,
+        "n_unique_lineages": 16,
+        "lolo_auroc": 0.6880000000000001,
+        "lolo_bal_acc": 0.7,
+        "loso_strict_disjoint_lineage_auroc": 0.7759999999999999,
+        "loso_strict_disjoint_lineage_bal_acc": 0.6799999999999999
+      }
+    ],
+    "isobaric_il_harmonization": [
+      {
+        "representation": "R2c_Anchor40_IL",
+        "n_contrasts": 35,
+        "lolo_auroc": 0.9480000000000001,
+        "loso_strict_disjoint_lineage_auroc": 0.5599999999999999
+      },
+      {
+        "representation": "R2_PosAA180_IL",
+        "n_contrasts": 35,
+        "lolo_auroc": 0.916,
+        "loso_strict_disjoint_lineage_auroc": 0.788
+      }
+    ],
+    "within_vs_between_locus": [
+      {
+        "decomposition_component": "Between_HLA_Locus_Share_Only_3df",
+        "n_allele_annotated_contrasts": 20,
+        "n_unique_lineages": 10,
+        "lolo_auroc": 0.8888888888888888
+      },
+      {
+        "decomposition_component": "Within_HLA_A_PosAA180_Only",
+        "n_allele_annotated_contrasts": 20,
+        "n_unique_lineages": 10,
+        "lolo_auroc": 0.5656565656565656
+      },
+      {
+        "decomposition_component": "Within_HLA_B_PosAA180_Only",
+        "n_allele_annotated_contrasts": 20,
+        "n_unique_lineages": 10,
+        "lolo_auroc": 0.36363636363636365
+      },
+      {
+        "decomposition_component": "Whole_Repertoire_PosAA180",
+        "n_allele_annotated_contrasts": 20,
+        "n_unique_lineages": 10,
+        "lolo_auroc": 0.7575757575757576
+      }
+    ],
+    "continuous_program_recovery": [
+      {
+        "program_axis": "Hallmark_IFNg_Response",
+        "representation": "R0_Quantity_Depth",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.7916945576303928,
+        "lolo_pearson_p": 0.0012600594346747639,
+        "lolo_relative_mse_vs_mean": 1.2422208951996125
+      },
+      {
+        "program_axis": "Hallmark_IFNg_Response",
+        "representation": "R1_Coarse96",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.1595361655183531,
+        "lolo_pearson_p": 0.6026373332765521,
+        "lolo_relative_mse_vs_mean": 1.1219840546893236
+      },
+      {
+        "program_axis": "Hallmark_IFNg_Response",
+        "representation": "R2c_Anchor40",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.5659521874804664,
+        "lolo_pearson_p": 0.043784342755035316,
+        "lolo_relative_mse_vs_mean": 1.515930327089757
+      },
+      {
+        "program_axis": "Hallmark_IFNg_Response",
+        "representation": "R2_PosAA180",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.3487717347876596,
+        "lolo_pearson_p": 0.24282966687246674,
+        "lolo_relative_mse_vs_mean": 1.9857295494727771
+      },
+      {
+        "program_axis": "Hallmark_E2F_Targets",
+        "representation": "R0_Quantity_Depth",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.35239896070136684,
+        "lolo_pearson_p": 0.23762907678642062,
+        "lolo_relative_mse_vs_mean": 1.3421860911665935
+      },
+      {
+        "program_axis": "Hallmark_E2F_Targets",
+        "representation": "R1_Coarse96",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.16814222102208567,
+        "lolo_pearson_p": 0.5829405088244678,
+        "lolo_relative_mse_vs_mean": 2.5824691805456585
+      },
+      {
+        "program_axis": "Hallmark_E2F_Targets",
+        "representation": "R2c_Anchor40",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.6077666430478099,
+        "lolo_pearson_p": 0.027561392527927858,
+        "lolo_relative_mse_vs_mean": 1.5626136690549093
+      },
+      {
+        "program_axis": "Hallmark_E2F_Targets",
+        "representation": "R2_PosAA180",
+        "n_contrasts": 13,
+        "n_unique_lineages": 11,
+        "lolo_pearson_r": -0.2964117021191305,
+        "lolo_pearson_p": 0.32542007191085004,
+        "lolo_relative_mse_vs_mean": 1.135622966483278
+      }
+    ]
+  },
+  "exp7d_distributed_redundancy": {
+    "newey_5fold_disjoint_gene_splits": {
+      "coarse96_concordance_per_20pct_gene_split": [
+        1.0,
+        0.703125,
+        0.8333333333333334,
+        0.828125,
+        0.875
+      ],
+      "coarse96_mean_concordance": 0.8479166666666668,
+      "aa20_concordance_per_20pct_gene_split": [
+        0.75,
+        1.0,
+        0.9375,
+        1.0,
+        0.8541666666666666
+      ],
+      "aa20_mean_concordance": 0.9083333333333334
+    },
+    "cross_lineage_5fold_disjoint_gene_splits": {
+      "within_split_mean_auroc_pos180": 0.8152000000000001,
+      "cross_split_disjoint_genes_mean_auroc_pos180": 0.6726000000000001,
+      "mean_pairwise_score_r_pos180": 0.07238273065730208,
+      "within_split_mean_auroc_anchor40": 0.6896000000000001,
+      "cross_split_disjoint_genes_mean_auroc_anchor40": 0.6569999999999998,
+      "mean_pairwise_score_r_anchor40": -0.05943960673680876
+    },
+    "ablation_summary": [
+      {
+        "mode": "Top_1_Peptide_Markers_Only",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.252,
+        "lolo_auroc_anchor40": 0.252,
+        "zero_feature_test_contrasts": 34
+      },
+      {
+        "mode": "Top_3_Peptide_Markers_Only",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.81,
+        "lolo_auroc_anchor40": 0.81,
+        "zero_feature_test_contrasts": 16
+      },
+      {
+        "mode": "Top_5_Peptide_Markers_Only",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.8460000000000001,
+        "lolo_auroc_anchor40": 0.8460000000000001,
+        "zero_feature_test_contrasts": 5
+      },
+      {
+        "mode": "Top_10_Peptide_Markers_Only",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.602,
+        "lolo_auroc_anchor40": 0.602,
+        "zero_feature_test_contrasts": 4
+      },
+      {
+        "mode": "Top_25_Peptide_Markers_Only",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.698,
+        "lolo_auroc_anchor40": 0.698,
+        "zero_feature_test_contrasts": 2
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.0,
+        "lolo_auroc_pos180": 0.948,
+        "lolo_auroc_anchor40": 0.9359999999999999,
+        "zero_feature_test_contrasts": 0
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.01,
+        "lolo_auroc_pos180": 0.936,
+        "lolo_auroc_anchor40": 0.972,
+        "zero_feature_test_contrasts": 0
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.05,
+        "lolo_auroc_pos180": 0.8160000000000001,
+        "lolo_auroc_anchor40": 0.7600000000000001,
+        "zero_feature_test_contrasts": 0
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.1,
+        "lolo_auroc_pos180": 0.86,
+        "lolo_auroc_anchor40": 0.776,
+        "zero_feature_test_contrasts": 0
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.25,
+        "lolo_auroc_pos180": 0.728,
+        "lolo_auroc_anchor40": 0.612,
+        "zero_feature_test_contrasts": 0
+      },
+      {
+        "mode": "Collective_Distribution_After_TopGene_Ablation",
+        "frac_genes_removed": 0.5,
+        "lolo_auroc_pos180": 0.62,
+        "lolo_auroc_anchor40": 0.712,
+        "zero_feature_test_contrasts": 0
+      }
+    ],
+    "budget_curve": [
+      {
+        "peptide_budget_M": 25,
+        "mean_auroc_anchor40": 0.4800000000000001,
+        "sd_auroc_anchor40": 0.14784857118010983,
+        "mean_auroc_pos180": 0.49800000000000005,
+        "sd_auroc_pos180": 0.14546202253509335
+      },
+      {
+        "peptide_budget_M": 50,
+        "mean_auroc_anchor40": 0.5456000000000001,
+        "sd_auroc_anchor40": 0.12325842770374769,
+        "mean_auroc_pos180": 0.5105999999999999,
+        "sd_auroc_pos180": 0.14812575738203
+      },
+      {
+        "peptide_budget_M": 100,
+        "mean_auroc_anchor40": 0.5118,
+        "sd_auroc_anchor40": 0.17261506307388125,
+        "mean_auroc_pos180": 0.5137999999999999,
+        "sd_auroc_pos180": 0.16687468352029916
+      },
+      {
+        "peptide_budget_M": 250,
+        "mean_auroc_anchor40": 0.5538000000000001,
+        "sd_auroc_anchor40": 0.13711002880898246,
+        "mean_auroc_pos180": 0.513,
+        "sd_auroc_pos180": 0.18864941028267224
+      },
+      {
+        "peptide_budget_M": 500,
+        "mean_auroc_anchor40": 0.6754,
+        "sd_auroc_anchor40": 0.14485454773668652,
+        "mean_auroc_pos180": 0.6029999999999999,
+        "sd_auroc_pos180": 0.10962390250305816
+      },
+      {
+        "peptide_budget_M": 1000,
+        "mean_auroc_anchor40": 0.7101999999999999,
+        "sd_auroc_anchor40": 0.16758269600409229,
+        "mean_auroc_pos180": 0.7216,
+        "sd_auroc_pos180": 0.11671777927976527
+      },
+      {
+        "peptide_budget_M": 2000,
+        "mean_auroc_anchor40": 0.721,
+        "sd_auroc_anchor40": 0.11672103495086052,
+        "mean_auroc_pos180": 0.7754,
+        "sd_auroc_pos180": 0.11002745112016364
+      }
+    ]
+  },
+  "exp7e_temporal": {
+    "bernhardt_sensitive_pos180_shift_24h": 0.15559150333113794,
+    "bernhardt_sensitive_pos180_shift_48_72h": 0.22270512320488267,
+    "bernhardt_resistant_pos180_shift_72h": 0.20831384936115713,
+    "bernhardt_mock_pos180_shift_72h": 0.0915542350456478,
+    "stopfer_xenograft_mda_share_gain_24h_pct": 0.07746488006195545,
+    "stopfer_xenograft_mda_share_gain_72h_pct": 1.1024533801260221
+  }
+}

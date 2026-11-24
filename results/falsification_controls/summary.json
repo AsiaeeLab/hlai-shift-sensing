@@ -1,0 +1,71 @@
+{
+  "disattenuation": {
+    "raw_r2_range": [
+      0.011154409169296026,
+      0.15601849389909866
+    ],
+    "disattenuated_r2_range": [
+      0.0124684106857708,
+      0.17768484093798648
+    ],
+    "ifng_fold_over_noise_null_range": [
+      2.454369469026549,
+      13.190139829897651
+    ]
+  },
+  "monte_controls": {
+    "lysine_controlled_hlai_ub_beta": 0.1994469127046105,
+    "lysine_controlled_hlai_ub_p": 1.2865533815387798e-76,
+    "lysine_controlled_diff_ub_beta": 0.04442136241831476,
+    "lysine_controlled_diff_ub_p": 0.0013750137382605027,
+    "exact_2way_noip_beta_prot": 0.0683952245369934,
+    "exact_2way_noip_se2way_prot": 0.015211457598797266,
+    "exact_2way_noip_beta_ub": 0.05645856987149712,
+    "exact_2way_noip_se2way_ub": 0.016829164470420637,
+    "prot_ft_noip_reliability": 0.8238868079568101,
+    "iv_2sls_beta_prot": 0.08762151771370998,
+    "iv_2sls_beta_ub": 0.04567686830616516,
+    "within_exact_allele_n_alleles": 16,
+    "within_exact_allele_n_obs": 35,
+    "within_exact_allele_erap1_len_r": -0.7451729821360368,
+    "within_exact_allele_erap1_len_p_ols": 2.825326295670336e-07,
+    "within_exact_allele_erap1_len_p_patient_clustered": 0.0002216100981409,
+    "jackknife_appm_breadth_noip_range": [
+      0.6747613619974396,
+      0.7832724128504139
+    ],
+    "jackknife_erap1_len_noip_range": [
+      -0.7522325955308905,
+      -0.6392270306810061
+    ],
+    "appm_breadth_partial_r_purity": 0.725984018325317,
+    "appm_breadth_partial_p_purity": 0.02679279041523772,
+    "appm_breadth_partial_r_immune": 0.7236745373256034,
+    "appm_breadth_partial_p_immune": 0.027522949851594918
+  },
+  "newey_external": {
+    "crc01_n_genes": 1748,
+    "crc01_mean_B_minus_A": 1.1020404055403106,
+    "crc01_ancova_pep0_adj_B_minus_A": 0.9223820498951484
+  },
+  "hap1_2x2_sec61": {
+    "tap1_true_sigpep_ret": 0.8714285714285714,
+    "tap1_cytosolic_nterm_ret": 0.44742729306487694,
+    "tap1_true_sigpep_med_dPep": 4.461300501966608,
+    "tap1_cytosolic_nterm_med_dPep": -0.9725955600315288,
+    "tap2_true_sigpep_ret": 0.7714285714285715,
+    "tap2_cytosolic_nterm_ret": 0.15771812080536912,
+    "tap2_true_sigpep_med_dPep": 6.223755506314658,
+    "tap2_cytosolic_nterm_med_dPep": -1.7411754578842142,
+    "erap1_batch_invariant_10_11mer_or": 1.4051518213653642
+  },
+  "persistence_controls": {
+    "mid_tercile_retained_mean_auroc_mech": 0.6785356715805632,
+    "mid_tercile_retained_mean_auroc_pep0": 0.612635059458888,
+    "mid_tercile_durable_mean_auroc_mech": 0.6234032859714607,
+    "mid_tercile_durable_mean_auroc_pep0": 0.5361462819309069,
+    "disjoint_gene_uwb1289_n_peptides": 1294,
+    "disjoint_gene_uwb1289_high_persist_auroc_mech": 0.8633308809549396,
+    "disjoint_gene_uwb1289_high_persist_auroc_prot0": 0.542678272754076
+  }
+}

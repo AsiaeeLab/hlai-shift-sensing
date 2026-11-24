@@ -1,0 +1,16 @@
+task	representation	primary_metric_name	primary_metric	reference_value	secondary_metric_name	secondary_metric
+Newey CRC PDO single-sample classification (IFNg vs MEKi, 4 PDOs)	Coarse P4-P7 chemistry (96 features, rank 66)	Balanced accuracy	0.5	0.5	Within-PDO AUROC	1.0
+Newey CRC PDO paired same-background ordering (4 PDOs)	Coarse P4-P7 chemistry (96 features)	Pair concordance	0.984375	0.5	AA composition baseline concordance	1.0
+Velz medulloblastoma k=4 partition agreement (RNA vs coarse96, N=28)	RNA vs coarse96	Adjusted Rand Index (ARI)	0.0301307166880482	0.0	BH q-value	0.6255411255411255
+Velz medulloblastoma k=4 partition agreement (RNA vs aa20, N=28)	RNA vs aa20	Adjusted Rand Index (ARI)	0.0676625966483574	0.0	BH q-value	0.5114885114885115
+Velz medulloblastoma k=4 partition agreement (RNA vs anchor16, N=28)	RNA vs anchor16	Adjusted Rand Index (ARI)	-0.0679314372297105	0.0	BH q-value	1.0
+Velz medulloblastoma k=4 partition agreement (RNA vs peptide, N=28)	RNA vs peptide	Adjusted Rand Index (ARI)	0.0271721121346676	0.0	BH q-value	0.6255411255411255
+Velz medulloblastoma k=4 partition agreement (RNA vs depth, N=28)	RNA vs depth	Adjusted Rand Index (ARI)	-0.0760773534897418	0.0	BH q-value	1.0
+Velz medulloblastoma k=4 partition agreement (RNA vs hla_center, N=28)	RNA vs hla_center	Adjusted Rand Index (ARI)	0.0415624464622237	0.0	BH q-value	0.6042378673957621
+Velz medulloblastoma k=4 partition agreement (RNA vs methylation, N=28)	RNA vs methylation	Adjusted Rand Index (ARI)	0.6537573736855604	0.0	BH q-value	0.0129870129870129
+Velz medulloblastoma k=4 partition agreement (coarse96 vs methylation, N=28)	coarse96 vs methylation	Adjusted Rand Index (ARI)	0.1051970876223951	0.0	BH q-value	0.3441558441558441
+Velz medulloblastoma k=4 partition agreement (aa20 vs methylation, N=28)	aa20 vs methylation	Adjusted Rand Index (ARI)	0.0340015224562293	0.0	BH q-value	0.6255411255411255
+Velz medulloblastoma k=4 partition agreement (anchor16 vs methylation, N=28)	anchor16 vs methylation	Adjusted Rand Index (ARI)	-0.0508436445444319	0.0	BH q-value	1.0
+Velz medulloblastoma k=4 partition agreement (peptide vs methylation, N=28)	peptide vs methylation	Adjusted Rand Index (ARI)	-0.0180261378999549	0.0	BH q-value	1.0
+Velz medulloblastoma k=4 partition agreement (depth vs methylation, N=28)	depth vs methylation	Adjusted Rand Index (ARI)	-0.064039408866995	0.0	BH q-value	1.0
+Velz medulloblastoma k=4 partition agreement (hla_center vs methylation, N=28)	hla_center vs methylation	Adjusted Rand Index (ARI)	0.05075513741025	0.0	BH q-value	0.5437229437229437

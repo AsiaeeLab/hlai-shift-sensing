@@ -1,0 +1,17 @@
+{
+  "accession": "PXD045211",
+  "donors": [
+    "islet22 (islet 1, 2 technical runs)",
+    "islet27 (islet 2, 2 technical runs)"
+  ],
+  "paired_untreated_control_available": false,
+  "paired_delta_q_defined": false,
+  "n_total_clean_peptides": 385,
+  "n_canonical_9mers": 180,
+  "author_locus_counts_9mer": {
+    "A": 80,
+    "B": 53,
+    "C": 35
+  },
+  "note": "PXD045211 profiles IFN-alpha-treated primary human islets without paired unstimulated donor islet immunopeptidomes; per Gate 4 protocol, paired shift scoring is restricted to paired ECN90 (PXD045265) rather than fabricating a cross-donor baseline."
+}

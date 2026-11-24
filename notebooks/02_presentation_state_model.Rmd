@@ -1,0 +1,297 @@
+---
+title: "Report 02: Core Presentation-State Model — Static Decoupling & Simplex Geometry"
+subtitle: "Testing pointwise protein readout vs. within-donor 9-mer simplex representations and Proposition 1 rank-66 proof"
+author: "Amir Asiaee, Nebojša Jojić, Elizabeth J. Phillips, and Simon A. Mallal"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    self_contained: true
+    fig_width: 9.5
+    fig_height: 5.5
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  fig.align = "center", dev = "png", dpi = 150
+)
+
+py_bin <- Sys.getenv("RETICULATE_PYTHON", unset = "")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python3")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python")
+if (nzchar(py_bin)) Sys.setenv(RETICULATE_PYTHON = py_bin)
+Sys.setenv(OMP_NUM_THREADS = "1", MKL_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", PYTHONDONTWRITEBYTECODE = "1")
+
+suppressPackageStartupMessages({
+  library(reticulate)
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(patchwork)
+  library(scales)
+  library(kableExtra)
+})
+
+nz_env <- function(var, fallback) {
+  val <- Sys.getenv(var, unset = "")
+  if (nzchar(val)) val else fallback
+}
+DATA_DIR <- nz_env("DATA_CACHE", nz_env("DATA_DIR", if (dir.exists("../data")) "../data" else "../../data"))
+PROC_DIR <- nz_env("PROCESSED_CACHE", nz_env("PROCESSED_DIR", file.path(DATA_DIR, "processed")))
+RES_DIR  <- nz_env("RESULTS_CACHE", nz_env("RESULTS_DIR", if (dir.exists("../results")) "../results" else "../../results"))
+REPO_DIR <- normalizePath(if (dir.exists("../src")) ".." else "../..", mustWork = FALSE)
+invisible(py_config())
+
+BLUE   <- "#0072B2"
+NAVY   <- "#1B4F72"
+ORANGE <- "#D55E00"
+LBLUE  <- "#56B4E9"
+GRAY   <- "#666666"
+TEAL   <- "#009E73"
+GOLD   <- "#E69F00"
+PURPLE <- "#CC79A7"
+
+theme_report <- function(base_size = 11.5) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title       = element_text(face = "bold", size = base_size + 1),
+      axis.title       = element_text(size = base_size - 0.5),
+      axis.text        = element_text(size = base_size - 1.5, color = "grey20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+      legend.position  = "bottom",
+      legend.title     = element_text(size = base_size - 1.5),
+      legend.text      = element_text(size = base_size - 1.5),
+      plot.tag         = element_text(face = "bold", size = base_size + 1)
+    )
+}
+theme_set(theme_report())
+
+tagged <- function(p) {
+  p + plot_annotation(tag_levels = "A", tag_suffix = ".") &
+    theme(plot.tag = element_text(face = "bold", size = 13))
+}
+
+show_tbl <- function(x, caption = NULL, ...) {
+  kbl(x, caption = caption, booktabs = TRUE, ...) |>
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = FALSE, position = "left")
+}
+```
+
+[Back to Master Index](00_index.html) | [Previous: Report 01](01_data_loading_and_qc.html) | [Next: Report 03 — Cross-Lineage & Six-Omic Cohorts](03_cross_lineage_and_multi_omic_cohorts.html)
+
+```{python init-paths, include=FALSE}
+import json
+import sys
+from itertools import combinations, product
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+RES_ROOT  = Path(r.RES_DIR)
+REPO_ROOT = Path(r.REPO_DIR)
+
+if (REPO_ROOT / "src").exists():
+    sys.path.insert(0, str(REPO_ROOT / "src"))
+    from presentation_state.representations import AMINO_ACIDS, GROUPS, geometry_check
+else:
+    AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
+    GROUPS = ("AILMVFWYP", "CNQSTG", "DE", "RHK")
+    def geometry_check():
+        words = list(product(range(4), repeat=4))
+        pair_idx = tuple(combinations(range(4), 2))
+        enc = np.zeros((256, 96))
+        for i, w in enumerate(words):
+            for k, (a, b) in enumerate(pair_idx):
+                enc[i, 16 * k + 4 * w[a] + w[b]] = 1.0
+        return int(np.linalg.matrix_rank(enc)), int(np.linalg.matrix_rank(enc - enc.mean(0)))
+
+def res_path(*parts):
+    cand = RES_ROOT.joinpath(*parts)
+    if cand.exists():
+        return cand
+    if parts and parts[0] == "falsification_controls":
+        fb = RES_ROOT.joinpath("exp6_referee_falsifications", *parts[1:])
+        if fb.exists():
+            return fb
+    if (RES_ROOT / "salvage").exists():
+        cand2 = RES_ROOT.joinpath("salvage", *parts)
+        if cand2.exists():
+            return cand2
+        if parts and parts[0] == "falsification_controls":
+            fb2 = RES_ROOT.joinpath("salvage", "exp6_referee_falsifications", *parts[1:])
+            if fb2.exists():
+                return fb2
+    return cand
+```
+
+# Pointwise Proteome--Peptidome Decoupling and Replicate Noise Nulls
+
+### Rationale
+
+Under a naive concentration-readout model ($y_{sp} \approx C \cdot x_{sg(p)}$), shifting parent-protein abundance should drive proportional shifts in derived HLA-I peptides, and sibling peptides from the same gene should move together. I evaluate the pointwise regression $\Delta\log_2 \mathrm{Pep}_p = \alpha + \beta_{\mathrm{Prot}}\,\Delta\log_2 \mathrm{Prot}_{g(p)} + \varepsilon_p$ across all eight proteome-matched contrasts (five `Bathini`/`Chong` label-free/DIA backgrounds, `Stopfer 2022` `SKMEL5` TMT MEKi, and `Bernhardt 2025` `Ma-Mel-63a` pulsed-SILAC IFN-$\gamma$ at 24 h and 72 h). I then test two diagnostics: (1) errors-in-variables disattenuated $R^2$ using empirical within-condition replicate reliabilities $\hat{\rho}_{\mathrm{Pep}}$ and $\hat{\rho}_{\mathrm{Prot}}$; and (2) 500-draw Monte Carlo nulls simulating sibling noise $\mathcal{N}(0, s_{\Delta,i}^2)$ under identical true gene fold changes.
+
+```{python exp1-decoupling}
+elast_t = pd.read_csv(res_path("exp1_concentration_decoupling", "perturbation_elasticity_summary.tsv"), sep="\t")
+f7a_t = pd.read_csv(res_path("exp7_distributional_sensing", "exp7a_followup_elasticity_and_ub.tsv"), sep="\t")
+disatt_t = pd.read_csv(res_path("falsification_controls", "disattenuation_and_sibling_null.tsv"), sep="\t")
+
+elast_view = elast_t.merge(
+    disatt_t[["background", "dPep_reliability_ceiling", "dProt_reliability", "r2_fully_disattenuated", "multiplicity_noise_null_gt2x", "multiplicity_noise_null_p95", "fold_over_noise_null"]],
+    on="background",
+    how="left"
+)[["background", "perturbation", "n_surviving_peptides", "elasticity_beta", "r_squared", "dPep_reliability_ceiling", "dProt_reliability", "r2_fully_disattenuated", "frac_genes_diverging_gt_2fold", "multiplicity_noise_null_gt2x", "fold_over_noise_null"]]
+
+f7a_view = f7a_t[["cohort", "n_peptides", "n_genes", "slope_dPep_dProt", "r_squared", "disattenuated_r_squared", "rna_r_squared", "frac_multi_genes_gt_2fold"]]
+```
+
+```{r show-exp1-decoupling}
+show_tbl(py$elast_view, digits = 3, caption = "Table 2.1: Proteome-peptidome elasticity, errors-in-variables disattenuated R2, and multiplicity-matched sibling nulls (label-free/DIA cohorts).")
+show_tbl(py$f7a_view, digits = 3, caption = "Table 2.2: Follow-up proteome/RNA elasticity and sibling divergence in SKMEL5 MEKi (TMT) and Ma-Mel-63a IFNg (pSILAC).")
+```
+
+```{r fig-decoupling-s1, fig.width=10.5, fig.height=4.5}
+d6 <- py$disatt_t |>
+  mutate(Label = paste0(background, "\n(", ifelse(perturbation == "IFNG", "IFN-gamma", "TGF-beta"), ")"))
+
+p_dis <- d6 |>
+  select(Label, r2_raw, r2_fully_disattenuated, dPep_reliability_ceiling) |>
+  pivot_longer(-Label, names_to = "Metric", values_to = "Val") |>
+  mutate(Metric = recode(Metric, r2_raw = "Raw dProt R2", r2_fully_disattenuated = "Disattenuated R2", dPep_reliability_ceiling = "dPep reliability")) |>
+  ggplot(aes(x = Label, y = 100 * Val, fill = Metric)) +
+  geom_col(position = "dodge", width = 0.68) +
+  scale_fill_manual(values = c("Raw dProt R2" = ORANGE, "Disattenuated R2" = GOLD, "dPep reliability" = LBLUE)) +
+  labs(x = NULL, y = "Variance / reliability (%)", fill = NULL, title = "Replicate noise ceiling vs. parent-protein R2")
+
+p_sib <- d6 |>
+  select(Label, obs_frac_gt2x_split, multiplicity_noise_null_gt2x) |>
+  pivot_longer(-Label, names_to = "Source", values_to = "Frac") |>
+  mutate(Source = recode(Source, obs_frac_gt2x_split = "Observed >2x split", multiplicity_noise_null_gt2x = "Multiplicity noise null")) |>
+  ggplot(aes(x = Label, y = 100 * Frac, fill = Source)) +
+  geom_col(position = "dodge", width = 0.65) +
+  scale_fill_manual(values = c("Observed >2x split" = BLUE, "Multiplicity noise null" = GRAY)) +
+  labs(x = NULL, y = "Multi-ligand genes diverging >2x (%)", fill = NULL, title = "Same-gene sibling peptide split vs. replicate null")
+
+tagged(p_dis + p_sib)
+```
+
+**What do we see?**
+
+Across all eight proteome-matched backgrounds (Tables 2.1–2.2 and Figure 2.1), steady-state or perturbed parent-protein fold-change leaves over `82%` of HLA-I peptide variance unexplained:
+
+1. **Weak pointwise tracking before and after error disattenuation:** Raw OLS $R^2$ ranges from `1.1%` in `UWB1.289` (`n = 1,566`, `beta = 0.361`) and `2.5%` in `ITO57T` (`n = 1,281`, `beta = 0.557`) to `9.6%` in `ITO66T` (`n = 1,612`, `beta = 0.746`) and `15.6%` in `ITO58M` (`n = 1,339`, `beta = 1.058`), while `A375` TGF-$\beta$ reaches `5.7%` (`n = 1,580`). Follow-up TMT (`Stopfer 2022 SKMEL5`, `n = 1,487`, `R^2 = 3.1%` proteome / `6.2%` RNA-seq) and pSILAC (`Bernhardt Ma-Mel-63a` IFN-$\gamma$, `0.4%` at 24 h / `1.7%` at 72 h) show even weaker pointwise coupling. Crucially, `dPep` replicate reliability ceilings stand high at `74.3%–98.7%` (`dProt` reliability `82.6%–95.9%`), so full errors-in-variables disattenuation raises $R^2_{\mathrm{disatt}}$ only slightly to `1.2%–17.8%` (`3.8%` in `SKMEL5`). Measurement error therefore cannot rescue the concentration-readout model.
+2. **Pervasive same-gene sibling splitting:** Across the four replicate-level IFN-$\gamma$ backgrounds, `26.7%` (`ITO66T`), `45.8%` (`ITO58M`), `51.8%` (`ITO57T`), and `60.8%` (`UWB1.289`) of multi-ligand parent proteins display $>2$-fold divergence between co-derived peptides, exceeding multiplicity-matched Gaussian noise nulls (`4.6%–18.6%`) by **`2.45x` to `13.19x`**. `Ma-Mel-63a` pulsed-SILAC shows `60.4%` (24 h) and `66.7%` (72 h) multi-ligand splitting, whereas non-inflammatory `A375 TGF-beta` (`18.1%`, `1.29x` null) and `SKMEL5 MEKi` (`3.7%`) exhibit minimal sibling divergence.
+
+---
+
+# Why Unpaired Single Biopsies Fail: Donor Polymorphism and Stromal Collinearity
+
+### Rationale
+
+Even if individual peptides decouple from parent proteins, could a static cross-sectional peptide profile still separate tumor states or perturbations across donors? I evaluate both unpaired and within-donor paired classification on same-era 2018 `Newey` colorectal organoids (`n=34` observations comparing IFN-$\gamma$ vs. trametinib), and audit cross-patient clustering (`ARI` against DNA methylation and RNA), the 6-rung representation ladder, and `Hallmark Angiogenesis` microvascular/HLA-I collinearity across `N=28` primary `Velz` medulloblastomas.
+
+```{python single-biopsy-ceiling}
+bench_t = pd.read_csv(res_path("exp1_concentration_decoupling", "decoding_benchmark_synthesis.tsv"), sep="\t")
+velz_ari_all = pd.read_csv(res_path("exp8_immunity_bridge", "velz_ari_all_pairs.csv"))
+velz_col = pd.read_csv(res_path("exp1_concentration_decoupling", "velz_angiogenesis_collinearity.tsv"), sep="\t")
+velz_lad = pd.read_csv(res_path("exp7_distributional_sensing", "exp7b_velz_representation_ladder.tsv"), sep="\t")
+newey_lad = pd.read_csv(res_path("exp8_immunity_bridge", "tableS12_newey_unpaired_vs_paired_all11.csv"))
+velz_scores = pd.read_csv(res_path("exp1_concentration_decoupling", "velz_microenvironment_patient_scores.tsv"), sep="\t")
+```
+
+```{r show-single-biopsy}
+show_tbl(py$bench_t, digits = 4, caption = "Table 2.3: Unpaired single-sample vs. paired within-organoid decoding and Velz k=4 unsupervised ARI.")
+show_tbl(py$velz_ari_all, digits = 4, caption = "Table 2.3b: Complete Velz N=28 k=4 partition ARI matrix comparing HLA-I representations against both RNA-seq and 850k DNA methylation.")
+show_tbl(py$velz_col[, c("covariate", "pearson_r_target", "pearson_p_target", "perm_p_target", "within_subgroup_partial_r_target")], digits = 4, caption = "Table 2.4: Velz N=28 Angiogenesis mRNA collinearity with HLA-I/B2M and stromal/immune transcripts.")
+show_tbl(py$velz_lad, digits = 3, caption = "Table 2.5: Velz N=28 6-rung single-biopsy representation ladder relative to molecular subgroup means.")
+show_tbl(py$newey_lad, digits = 3, caption = "Table 2.6: Complete 11-representation Newey 2018 colorectal PDO single-sample vs. paired within-organoid ladder.")
+```
+
+```{r fig-velz-collinearity, fig.width=10.2, fig.height=4.4}
+vs <- py$velz_scores
+p_v1 <- ggplot(vs, aes(x = hla_i_b2m_mrna, y = angiogenesis_target, color = molecular_subgroup)) +
+  geom_point(size = 2.6, alpha = 0.9) +
+  geom_smooth(method = "lm", se = FALSE, color = "#111111", linetype = "dashed", linewidth = 0.8, aes(group = 1)) +
+  scale_color_manual(values = c(WNT = GOLD, SHH = ORANGE, G3 = NAVY, G4 = TEAL)) +
+  labs(x = "Biopsy HLA-A/B/C/B2M mRNA (log2(1+TPM))", y = "Hallmark Angiogenesis score", color = "Subgroup", title = "Velz N=28 HLA-I/B2M vs. Angiogenesis")
+
+p_v2 <- py$velz_col |>
+  mutate(Cov = recode(covariate, hla_i_b2m_mrna = "HLA-I / B2M", appm_mrna = "APPM core", myeloid_mrna = "Myeloid", endothelial_mrna = "Endothelial", tcell_mrna = "T-cell", ecm_stromal_mrna = "ECM stromal")) |>
+  pivot_longer(c(pearson_r_target, within_subgroup_partial_r_target), names_to = "Type", values_to = "r") |>
+  mutate(Type = recode(Type, pearson_r_target = "Raw Pearson r", within_subgroup_partial_r_target = "Within-subgroup partial r")) |>
+  ggplot(aes(x = reorder(Cov, r), y = r, fill = Type)) +
+  geom_col(position = "dodge", width = 0.65) +
+  coord_flip() +
+  scale_fill_manual(values = c("Raw Pearson r" = BLUE, "Within-subgroup partial r" = TEAL)) +
+  labs(x = NULL, y = "Correlation with Angiogenesis", fill = NULL, title = "Microenvironment collinearity persists within subgroup")
+
+tagged(p_v1 + p_v2)
+```
+
+**What do we see?**
+
+Unpaired cross-sectional profiles collapse across human donors because genetic HLA variation and stromal infiltration swamp intracellular state (Tables 2.3–2.6 and Figure 2.2):
+
+- **Paired vs. unpaired decoding in `Newey` CRC organoids (`n = 34`):** Unpaired leave-one-organoid-out classification across same-era 2018 runs sits at exact chance (`0.500` balanced accuracy for fixed `Coarse96` and `0.403–0.719` across nested representation tiers; `R2_PosAA180 = 0.594`). Taking paired same-background differences restores pair ordering concordance to **`0.9844`** (`Coarse96`) and **`1.000`** (`AA20`; `0.938` `PosAA180`), with worst-organoid concordance jumping from near chance to `0.938` (`Coarse96`) and `1.000` (`AA20`).
+- **Single-biopsy ceiling in `Velz N = 28` primary medulloblastomas:** While bulk RNA-seq and 850k DNA methylation agree on `k = 4` molecular subgroups (`ARI = 0.6538`, `BH q = 0.0130`), baseline-free HLA-I representations yield weak cluster agreement against both RNA-seq (`Coarse96 ARI = 0.0301`, range `-0.0761` to `0.0677`, `q >= 0.51`) and DNA methylation (`Coarse96 ARI = 0.1052`, `q = 0.3442`; range `-0.0640` to `0.1052`, Table 2.3b). Across the 6-rung single-biopsy ladder (Table 2.5), cross-patient `Proliferation` and `IFN-gamma` prediction stays at relative MSE `0.991–1.008` and `0.899–1.152` relative to subgroup means, with `k = 4` balanced accuracy capped at `0.212–0.398`. Moreover, `Hallmark Angiogenesis` tracks `HLA-I/B2M` mRNA ($r = 0.7875$, within-subgroup partial $r = 0.7928$), `APPM` core mRNA ($r = 0.7477$), myeloid transcripts ($r = 0.6880$), and endothelial transcripts ($r = 0.6847$), confirming that stromal/endothelial admixture drives single-tumor HLA-I variation.
+
+---
+
+# Algebraic Geometry of `Coarse96` (Proposition 1) and the Representation Hierarchy
+
+### Rationale
+
+Why does central P4--P7 pairwise chemistry (`Coarse96`) span exactly `66` affine dimensions out of `96` coordinates, and how does compressing 9-mers onto P4--P7 compare mathematically against full `PosAA180` ($9 \times 20$) and `Anchor40` (P2 + P9)? Below I compute the exact singular-value spectrum of the `256 x 96` word-to-pair map $\Phi$ in Python to verify Proposition 1 (`1 + 12 + 54 = 67` linear rank; `66` affine simplex dimension) and summarize the six representation tiers tested across the study.
+
+```{python prop1-svd-and-tiers}
+words = list(product(range(4), repeat=4))
+pair_idx = tuple(combinations(range(4), 2))
+enc = np.zeros((256, 96), dtype=float)
+for i, w in enumerate(words):
+    for k, (a, b) in enumerate(pair_idx):
+        enc[i, 16 * k + 4 * w[a] + w[b]] = 1.0
+
+sv_raw = np.linalg.svd(enc, compute_uv=False)
+sv_cen = np.linalg.svd(enc - enc.mean(0), compute_uv=False)
+rank_phi, affine_dim = geometry_check()
+
+prop_checks = pd.DataFrame([
+    {"Invariant": "Exact ANOVA decomposition 1 + 12 + 54", "Computed": int(np.sum(sv_raw > 1e-10)), "Expected": 67, "Smallest_Nonzero_SV": round(float(sv_raw[66]), 6), "Largest_Zero_SV": f"{sv_raw[67]:.2e}"},
+    {"Invariant": "Centered simplex affine dimension", "Computed": int(np.sum(sv_cen > 1e-10)), "Expected": 66, "Smallest_Nonzero_SV": round(float(sv_cen[65]), 6), "Largest_Zero_SV": f"{sv_cen[66]:.2e}"},
+    {"Invariant": "representations.geometry_check()", "Computed": f"{rank_phi} / {affine_dim}", "Expected": "67 / 66", "Smallest_Nonzero_SV": "-", "Largest_Zero_SV": "-"},
+    {"Invariant": "Physicochemical 4-class partition", "Computed": " / ".join(GROUPS), "Expected": "AILMVFWYP / CNQSTG / DE / RHK", "Smallest_Nonzero_SV": "-", "Largest_Zero_SV": "-"},
+])
+
+tiers_tbl = pd.DataFrame([
+    {"Tier": "R0: Nuisance", "Dimension": "3-5", "Definition": "Log total MS intensity, detected 9-mer count, length fractions (or K/R/L shares in pSILAC)"},
+    {"Tier": "R1: Coarse96 / Count96", "Dimension": "96 (66 affine)", "Definition": "6 unordered P4-P7 pairs x 16 ordered 4-class chemistry pairs (intensity- or presence-weighted)"},
+    {"Tier": "R2a: AA20", "Dimension": "20", "Definition": "Bulk residue fractions across all 9 positions of presented 9-mers"},
+    {"Tier": "R2b: Pos80", "Dimension": "80", "Definition": "Marginal 20-AA frequencies at internal positions P4, P5, P6, P7"},
+    {"Tier": "R2c: Anchor40", "Dimension": "40", "Definition": "Marginal 20-AA frequencies at HLA-pocket anchor positions P2 and P9"},
+    {"Tier": "R2: PosAA180", "Dimension": "180 (9x20)", "Definition": "Full 9-position x 20-amino-acid marginal tensor on the 9-mer simplex"},
+    {"Tier": "R4 / R5 / R5b", "Dimension": "Peptide / Gene / 8", "Definition": "Exact 9-mer identity pi_s, source-gene shares, and fixed 8-gene MDA share"},
+])
+```
+
+```{r show-prop1-tiers}
+show_tbl(py$prop_checks, caption = "Table 2.7: Numerical singular-value verification of Proposition 1 (Coarse96 rank 67 / affine simplex dimension 66).")
+show_tbl(py$tiers_tbl, caption = "Table 2.8: Six-tier sequence representation hierarchy benchmarked across cohorts.")
+```
+
+**What do we see?**
+
+Table 2.7 confirms **Proposition 1** numerically to machine precision across all `256` ordered 4-letter chemistry words over `GROUPS = ('AILMVFWYP', 'CNQSTG', 'DE', 'RHK')`: the raw `256 x 96` P4--P7 pair-indicator map $\Phi$ has exact linear rank **`67`** (smallest nonzero singular value `4.0`, 68th singular value `5.39e-15`), matching the ANOVA decomposition `1 + 12 + 54 = 67`, while the centered matrix $\Phi - \bar{\Phi}$ has exact rank **`66`** (66th singular value `4.0`, 67th singular value `7.98e-15`). While `Coarse96` cancels linear pocket offsets inside a single organoid background, Table 2.8 contrasts how `Coarse96` remains completely blind to HLA P2/P9 anchor positions (`Anchor40`, dimension `40`) and full $9 \times 20$ positional marginals (`PosAA180`, dimension `180`).
+
+**Decision point:**
+
+Given >`80%` decoupling between pointwise peptide fold-change and parent-protein abundance, chance-level single-biopsy decoding across donors, and exact geometric characterization of anchor-blind vs. anchor-aware simplex coordinates, I carry `R0`–`R5` directly into [Report 03](03_cross_lineage_and_multi_omic_cohorts.html) to test cross-lineage (`35` contrasts, `16` lineages) and zero-HLA-overlap (`SK-Mel-28`) generalization alongside six-omic `MONTE LUAD` intracellular flux.

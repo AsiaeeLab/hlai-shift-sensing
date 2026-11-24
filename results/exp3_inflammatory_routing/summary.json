@@ -1,0 +1,10 @@
+{
+  "uwb1289_e2f_theta_survivor": 0.47822907762247135,
+  "uwb1289_e2f_theta_lod_min": -0.5274402229225641,
+  "uwb1289_e2f_theta_lod_p01": -0.022041212627493055,
+  "uwb1289_e2f_sign_identified": false,
+  "ito58m_hlab_denovo_ratio": 2.9711768882577436,
+  "uwb1289_hlab_denovo_ratio": 2.7583807430693685,
+  "hydro_cterm_positive_backgrounds": 7,
+  "total_ifng_backgrounds_tested": 8
+}

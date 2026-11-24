@@ -1,0 +1,450 @@
+{
+  "n_checks": 47,
+  "n_passed": 47,
+  "n_failed": 0,
+  "all_passed": true,
+  "checks": [
+    {
+      "check": "staged_gene_topology_sha256",
+      "passed": true,
+      "observed": "a28744c880b278b316842f2eac20298e5b34a5e9e2100bcbb49a0b7e165a48c1",
+      "expected": "a28744c880b278b316842f2eac20298e5b34a5e9e2100bcbb49a0b7e165a48c1"
+    },
+    {
+      "check": "staged_monte_hlaii_strict_sha256",
+      "passed": true,
+      "observed": "6b8fa2be065b08bb035a0eac29798698e5ba3c4343e5f2731b965367ed3fdd55",
+      "expected": "6b8fa2be065b08bb035a0eac29798698e5ba3c4343e5f2731b965367ed3fdd55"
+    },
+    {
+      "check": "proposition1_linear_rank_67",
+      "passed": true,
+      "observed": 67,
+      "expected": 67
+    },
+    {
+      "check": "proposition1_simplex_affine_dim_66",
+      "passed": true,
+      "observed": 66,
+      "expected": 66
+    },
+    {
+      "check": "exact_representations_groups",
+      "passed": true,
+      "observed": [
+        "AILMVFWYP",
+        "CNQSTG",
+        "DE",
+        "RHK"
+      ],
+      "expected": [
+        "AILMVFWYP",
+        "CNQSTG",
+        "DE",
+        "RHK"
+      ]
+    },
+    {
+      "check": "meta_velz_N28_exact",
+      "passed": true,
+      "observed": 28,
+      "expected": 28
+    },
+    {
+      "check": "meta_hap1_run_date_20201127",
+      "passed": true,
+      "observed": "20201127",
+      "expected": "20201127"
+    },
+    {
+      "check": "meta_chong_n4_replicates",
+      "passed": true,
+      "observed": 4,
+      "expected": 4
+    },
+    {
+      "check": "mod1_newey_loo_ba",
+      "passed": true,
+      "observed": 0.5,
+      "expected": 0.5
+    },
+    {
+      "check": "mod1_newey_paired_concordance",
+      "passed": true,
+      "observed": 0.9844,
+      "expected": 0.9844
+    },
+    {
+      "check": "mod1_velz_rna_methylation_ari",
+      "passed": true,
+      "observed": 0.6538,
+      "expected": 0.6538
+    },
+    {
+      "check": "mod1_velz_peptide_rna_ari",
+      "passed": true,
+      "observed": 0.0301,
+      "expected": 0.0301
+    },
+    {
+      "check": "mod1_velz_angio_hlai_collinearity",
+      "passed": true,
+      "observed": 0.7875,
+      "expected": 0.7875
+    },
+    {
+      "check": "mod1_proteome_r2_bounds",
+      "passed": true,
+      "observed": [
+        1.12,
+        15.6
+      ],
+      "expected": [
+        1.12,
+        15.6
+      ]
+    },
+    {
+      "check": "mod1_sibling_divergence_bounds",
+      "passed": true,
+      "observed": [
+        26.69,
+        60.8
+      ],
+      "expected": [
+        26.69,
+        60.8
+      ]
+    },
+    {
+      "check": "mod2_across_gene_ub_hlai_beta",
+      "passed": true,
+      "observed": 0.1993,
+      "expected": 0.1993
+    },
+    {
+      "check": "mod2_within_gene_noip_ub_slope",
+      "passed": true,
+      "observed": [
+        0.0464,
+        0.0122
+      ],
+      "expected": [
+        0.0464,
+        0.0122
+      ]
+    },
+    {
+      "check": "mod2_erap1_length_r",
+      "passed": true,
+      "observed": -0.6783,
+      "expected": -0.6783
+    },
+    {
+      "check": "mod2_appm_breadth_ft_r",
+      "passed": true,
+      "observed": 0.7615,
+      "expected": 0.7615
+    },
+    {
+      "check": "mod3_uwb1289_censoring_sign_flip",
+      "passed": true,
+      "observed": [
+        0.478,
+        -0.527
+      ],
+      "expected": [
+        0.478,
+        -0.527
+      ]
+    },
+    {
+      "check": "mod3_same_gene_hlab_divergence",
+      "passed": true,
+      "observed": [
+        0.984,
+        1.242
+      ],
+      "expected": [
+        0.984,
+        1.242
+      ]
+    },
+    {
+      "check": "mod3_hydrophobic_cterm_7pos_6sig",
+      "passed": true,
+      "observed": [
+        7,
+        6
+      ],
+      "expected": [
+        7,
+        6
+      ]
+    },
+    {
+      "check": "mod4_erap1_denovo_10_11mer_pct",
+      "passed": true,
+      "observed": 78.11,
+      "expected": 78.11
+    },
+    {
+      "check": "mod4_tap2_sec61_sparing_fold",
+      "passed": true,
+      "observed": 43.64,
+      "expected": 43.64
+    },
+    {
+      "check": "mod4_tap2_hallmark49_sigpep_r",
+      "passed": true,
+      "observed": 0.6881,
+      "expected": 0.688
+    },
+    {
+      "check": "mod4_tap2_emt_topology_collapse",
+      "passed": true,
+      "observed": 0.23,
+      "expected": 0.23
+    },
+    {
+      "check": "mod5_total_baseline_peptides",
+      "passed": true,
+      "observed": 6998,
+      "expected": 6998
+    },
+    {
+      "check": "mod5_retention_auroc_mech_vs_prot0",
+      "passed": true,
+      "observed": [
+        0.7246,
+        0.4546
+      ],
+      "expected": [
+        0.7246,
+        0.4546
+      ]
+    },
+    {
+      "check": "mod5_high_persist_pep0_and_affinity_durability",
+      "passed": true,
+      "observed": [
+        0.8716,
+        0.8686,
+        0.6351,
+        98.75
+      ],
+      "expected": [
+        0.8716,
+        0.8686,
+        0.6351,
+        98.75
+      ]
+    },
+    {
+      "check": "fc_disattenuated_r2_bounds",
+      "passed": true,
+      "observed": [
+        1.25,
+        17.77
+      ],
+      "expected": [
+        1.25,
+        17.77
+      ]
+    },
+    {
+      "check": "fc_within_exact_allele_erap1",
+      "passed": true,
+      "observed": -0.7452,
+      "expected": -0.7452
+    },
+    {
+      "check": "fc_lysine_controlled_ub_hlai",
+      "passed": true,
+      "observed": 0.1994,
+      "expected": 0.1994
+    },
+    {
+      "check": "fc_newey_crc01_external_validation",
+      "passed": true,
+      "observed": [
+        1748,
+        1.102
+      ],
+      "expected": [
+        1748,
+        1.102
+      ]
+    },
+    {
+      "check": "fc_hap1_2x2_sec61_signal_sparing",
+      "passed": true,
+      "observed": [
+        77.14,
+        15.77
+      ],
+      "expected": [
+        77.14,
+        15.77
+      ]
+    },
+    {
+      "check": "fc_mid_tercile_and_disjoint_gene",
+      "passed": true,
+      "observed": [
+        0.6234,
+        0.8633
+      ],
+      "expected": [
+        0.6234,
+        0.8633
+      ]
+    },
+    {
+      "check": "mod7a_skmel5_meki_and_dynamic_ub_null",
+      "passed": true,
+      "observed": [
+        3.1,
+        0.269
+      ],
+      "expected": [
+        3.1,
+        0.269
+      ]
+    },
+    {
+      "check": "mod7a_bernhardt_psilac_ifng_hlab_divergence",
+      "passed": true,
+      "observed": [
+        0.688,
+        60.36
+      ],
+      "expected": [
+        0.688,
+        60.36
+      ]
+    },
+    {
+      "check": "mod7b_velz_all_6_rungs_fail_prolif",
+      "passed": true,
+      "observed": [
+        0.991,
+        1.008
+      ],
+      "expected": [
+        0.991,
+        1.008
+      ]
+    },
+    {
+      "check": "mod7c_cross_lineage_pos180_vs_coarse96",
+      "passed": true,
+      "observed": [
+        0.948,
+        0.724,
+        0.756
+      ],
+      "expected": [
+        0.948,
+        0.724,
+        0.756
+      ]
+    },
+    {
+      "check": "mod7c_isobaric_il_harmonization",
+      "passed": true,
+      "observed": [
+        0.916,
+        0.788
+      ],
+      "expected": [
+        0.916,
+        0.788
+      ]
+    },
+    {
+      "check": "mod7c_skmel28_zero_hla_resistance_and_cross_platform",
+      "passed": true,
+      "observed": [
+        1.0,
+        0.667,
+        0.917
+      ],
+      "expected": [
+        1.0,
+        0.667,
+        0.917
+      ]
+    },
+    {
+      "check": "mod7d_redundancy_ablation_vs_top1_marker",
+      "passed": true,
+      "observed": [
+        34,
+        0.86
+      ],
+      "expected": [
+        34,
+        0.86
+      ]
+    },
+    {
+      "check": "mod8_roster_35_and_manifests_valid",
+      "passed": true,
+      "observed": {
+        "n": 35,
+        "lolo": true,
+        "loso": true
+      },
+      "expected": {
+        "n": 35,
+        "lolo": true,
+        "loso": true
+      }
+    },
+    {
+      "check": "mod8_kitagawa_oaxaca_exact_identity",
+      "passed": true,
+      "observed": 76.78,
+      "expected": 76.78
+    },
+    {
+      "check": "mod8_external_pride_bridge_pxd085470_pxd045265",
+      "passed": true,
+      "observed": [
+        9.062,
+        4.857
+      ],
+      "expected": [
+        9.062,
+        4.857
+      ]
+    },
+    {
+      "check": "all_14_figures_exist_and_no_subplot_titles",
+      "passed": true,
+      "observed": {
+        "figs_present": true,
+        "has_set_title": false
+      },
+      "expected": {
+        "figs_present": true,
+        "has_set_title": false
+      }
+    },
+    {
+      "check": "mod9_positional_anatomy_logos_and_supertype_convergence",
+      "passed": true,
+      "observed": [
+        0.704,
+        39.85,
+        11.57
+      ],
+      "expected": [
+        0.704,
+        39.85,
+        11.57
+      ]
+    }
+  ]
+}

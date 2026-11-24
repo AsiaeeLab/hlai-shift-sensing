@@ -1,0 +1,124 @@
+{
+  "supertype_convergence": {
+    "single_allele_mean_anchor_jsd_bits": 0.5990140254463402,
+    "donor_zero_shared_4digit_mean_anchor_jsd_bits": 0.360322616169308,
+    "anchor_jsd_reduction_pct": 39.84738238794614,
+    "n_zero_4digit_overlap_donor_pairs": 66,
+    "frac_zero_4digit_pairs_sharing_at_least_1_supertype": 0.9545454545454546,
+    "mean_shared_supertypes_among_zero_4digit_pairs": 1.803030303030303,
+    "skmel28_supertypes": [
+      "A03",
+      "B44",
+      "C1"
+    ],
+    "bernhardt_train_supertypes": [
+      "A02",
+      "A03",
+      "B07",
+      "B44",
+      "C2"
+    ],
+    "skmel28_shared_supertypes_with_train": [
+      "A03",
+      "B44"
+    ]
+  },
+  "hla_c_diagnostics": [
+    {
+      "source": "MHCflurry_16Lineages_BestDonorLocus",
+      "locus": "HLA-A",
+      "n_unique_peptides": 40772,
+      "median_ic50_nM_all_best": 32.39652028085096,
+      "iqr25_ic50_nM": 25.324636171342785,
+      "iqr75_ic50_nM": 45.04332271548523,
+      "frac_gt_500nM": 0.015697046993034435,
+      "frac_gt_1000nM": 0.010374766996958697,
+      "median_ic50_nM_within_500nM": 32.167275083273125
+    },
+    {
+      "source": "MHCflurry_16Lineages_BestDonorLocus",
+      "locus": "HLA-B",
+      "n_unique_peptides": 17652,
+      "median_ic50_nM_all_best": 44.19850788948678,
+      "iqr25_ic50_nM": 36.50064661519827,
+      "iqr75_ic50_nM": 60.60353398782796,
+      "frac_gt_500nM": 0.02515295717199184,
+      "frac_gt_1000nM": 0.017788352594606843,
+      "median_ic50_nM_within_500nM": 43.692517257985955
+    },
+    {
+      "source": "MHCflurry_16Lineages_BestDonorLocus",
+      "locus": "HLA-C",
+      "n_unique_peptides": 8891,
+      "median_ic50_nM_all_best": 36.91196622523763,
+      "iqr25_ic50_nM": 28.153497809248847,
+      "iqr75_ic50_nM": 76.77463621150251,
+      "frac_gt_500nM": 0.11573501293442807,
+      "frac_gt_1000nM": 0.09290293555280621,
+      "median_ic50_nM_within_500nM": 34.247289297297954
+    },
+    {
+      "source": "AuthorAnnotated_Stopfer_Bernhardt_MatchedLocusIC50",
+      "locus": "HLA-A",
+      "n_unique_peptides": 23698,
+      "median_ic50_nM_all_best": 32.971394880392666,
+      "iqr25_ic50_nM": 26.08941581133984,
+      "iqr75_ic50_nM": 46.507066158407014,
+      "frac_gt_500nM": 0.035108447970292854,
+      "frac_gt_1000nM": 0.030340113089712212,
+      "median_ic50_nM_within_500nM": 32.392333625966955
+    },
+    {
+      "source": "AuthorAnnotated_Stopfer_Bernhardt_MatchedLocusIC50",
+      "locus": "HLA-B",
+      "n_unique_peptides": 9493,
+      "median_ic50_nM_all_best": 45.43749018551582,
+      "iqr25_ic50_nM": 36.29545649510092,
+      "iqr75_ic50_nM": 62.59827376824692,
+      "frac_gt_500nM": 0.030022121563257138,
+      "frac_gt_1000nM": 0.02359633414094596,
+      "median_ic50_nM_within_500nM": 44.769326885002826
+    },
+    {
+      "source": "AuthorAnnotated_Stopfer_Bernhardt_MatchedLocusIC50",
+      "locus": "HLA-C",
+      "n_unique_peptides": 4193,
+      "median_ic50_nM_all_best": 34.81089859218734,
+      "iqr25_ic50_nM": 27.785596646495737,
+      "iqr75_ic50_nM": 57.30277481215492,
+      "frac_gt_500nM": 0.06439303601240162,
+      "frac_gt_1000nM": 0.04483663248270928,
+      "median_ic50_nM_within_500nM": 33.71279286302614
+    }
+  ],
+  "hla_share_shifts": [
+    {
+      "locus": "HLA-A",
+      "mean_baseline_share_pct_all35": 75.2910957530558,
+      "mean_dw_ifng_pp_n10": -6.7328715659443485,
+      "mean_dw_mapki_pp_n25": -0.7839595601195481,
+      "max_dw_ifng_pp": -0.09895655332411712
+    },
+    {
+      "locus": "HLA-B",
+      "mean_baseline_share_pct_all35": 14.337072549889507,
+      "mean_dw_ifng_pp_n10": 7.465156353724868,
+      "mean_dw_mapki_pp_n25": 1.0141943102807893,
+      "max_dw_ifng_pp": 17.14031617907225
+    },
+    {
+      "locus": "HLA-C",
+      "mean_baseline_share_pct_all35": 7.150816587196801,
+      "mean_dw_ifng_pp_n10": 1.9703040148539142,
+      "mean_dw_mapki_pp_n25": -0.21123681645008266,
+      "max_dw_ifng_pp": 6.748633515491953
+    },
+    {
+      "locus": "Unassigned_gt500nM",
+      "mean_baseline_share_pct_all35": 3.221015109857909,
+      "mean_dw_ifng_pp_n10": -2.7025888026344527,
+      "mean_dw_mapki_pp_n25": -0.018997933711179027,
+      "max_dw_ifng_pp": 0.620799034274082
+    }
+  ]
+}

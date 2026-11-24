@@ -1,0 +1,61 @@
+sequence_coding,category,subset_key,human_label,legacy_tag,positions_included,n_positions,nominal_features,lolo_auroc,lolo_bal_acc,loso_strict_auroc,loso_strict_bal_acc,loso_bernhardt_auroc,loso_newey_auroc,skmel28_8run_auroc,skmel28_drug4_wt_vs_dr_conc
+Database_20AA,Group,Full_9mer_Motif_P1_to_P9,Full 9-mer motif (P1–P9),PosAA180,"P1,P2,P3,P4,P5,P6,P7,P8,P9",9,180,0.948,0.8600000000000001,0.756,0.6799999999999999,0.875,0.5,1.0,1.0
+Database_20AA,Group,HLA_Anchors_P2_P9,"HLA anchors only (P2, P9)",Anchor40,"P2,P9",2,40,0.9359999999999999,0.83,0.588,0.6699999999999999,1.0,0.8125,0.6666666666666667,0.25
+Database_20AA,Group,Trimming_Secondary_P1_P3_P8,"Trimming & secondary (P1, P3, P8)",Flank60,"P1,P3,P8",3,60,0.6519999999999999,0.57,0.46399999999999997,0.45999999999999996,0.625,0.375,0.8333333333333334,0.5
+Database_20AA,Group,Central_Bulge_Residues_P4_to_P7,Central bulge residues (P4–P7),Pos80,"P4,P5,P6,P7",4,80,0.724,0.69,0.528,0.5,0.75,0.4375,0.5833333333333333,0.75
+Database_20AA,Group,All_NonAnchor_P1_P3_to_P8,"All non-anchor residues (P1, P3–P8)",NonAnchor140,"P1,P3,P4,P5,P6,P7,P8",7,140,0.728,0.6699999999999999,0.612,0.47,0.75,0.5,1.0,1.0
+Database_20AA,Single_Position,Only_P1,Position P1 only,Pos20_P1,P1,1,20,0.5640000000000001,0.6000000000000001,0.236,0.34,0.6875,0.375,1.0,1.0
+Database_20AA,Single_Position,Only_P2,Position P2 only,Pos20_P2,P2,1,20,0.984,0.9299999999999999,0.872,0.8600000000000001,1.0,0.75,0.8333333333333334,0.75
+Database_20AA,Single_Position,Only_P3,Position P3 only,Pos20_P3,P3,1,20,0.592,0.65,0.528,0.6699999999999999,0.875,0.375,0.0,0.0
+Database_20AA,Single_Position,Only_P4,Position P4 only,Pos20_P4,P4,1,20,0.796,0.79,0.724,0.65,0.9375,0.6875,0.5,0.75
+Database_20AA,Single_Position,Only_P5,Position P5 only,Pos20_P5,P5,1,20,0.6399999999999999,0.69,0.484,0.54,0.875,0.6875,0.4166666666666667,0.5
+Database_20AA,Single_Position,Only_P6,Position P6 only,Pos20_P6,P6,1,20,0.39599999999999996,0.52,0.208,0.37,0.3125,0.25,0.8333333333333334,0.5
+Database_20AA,Single_Position,Only_P7,Position P7 only,Pos20_P7,P7,1,20,0.66,0.72,0.46799999999999997,0.5,0.5625,0.8125,0.0,0.0
+Database_20AA,Single_Position,Only_P8,Position P8 only,Pos20_P8,P8,1,20,0.58,0.55,0.31199999999999994,0.33,0.375,0.5625,0.3333333333333333,0.0
+Database_20AA,Single_Position,Only_P9,Position P9 only,Pos20_P9,P9,1,20,0.864,0.69,0.38799999999999996,0.57,0.8125,0.5,0.7500000000000001,0.25
+Database_20AA,Drop_One_Position,Drop_P1,Drop P1 (keep remaining 8),Drop_P1,"P2,P3,P4,P5,P6,P7,P8,P9",8,160,0.912,0.8600000000000001,0.752,0.6599999999999999,0.875,0.5,0.16666666666666663,0.5
+Database_20AA,Drop_One_Position,Drop_P2,Drop P2 (keep remaining 8),Drop_P2,"P1,P3,P4,P5,P6,P7,P8,P9",8,160,0.8600000000000001,0.79,0.668,0.54,0.75,0.5,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P3,Drop P3 (keep remaining 8),Drop_P3,"P1,P2,P4,P5,P6,P7,P8,P9",8,160,0.912,0.8600000000000001,0.788,0.6699999999999999,0.9375,0.625,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P4,Drop P4 (keep remaining 8),Drop_P4,"P1,P2,P3,P5,P6,P7,P8,P9",8,160,0.876,0.8400000000000001,0.708,0.6000000000000001,0.8125,0.4375,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P5,Drop P5 (keep remaining 8),Drop_P5,"P1,P2,P3,P4,P6,P7,P8,P9",8,160,0.904,0.8600000000000001,0.772,0.61,0.8125,0.4375,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P6,Drop P6 (keep remaining 8),Drop_P6,"P1,P2,P3,P4,P5,P7,P8,P9",8,160,0.912,0.8600000000000001,0.828,0.7,0.9375,0.75,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P7,Drop P7 (keep remaining 8),Drop_P7,"P1,P2,P3,P4,P5,P6,P8,P9",8,160,0.8999999999999999,0.8600000000000001,0.8240000000000001,0.72,1.0,0.5,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P8,Drop P8 (keep remaining 8),Drop_P8,"P1,P2,P3,P4,P5,P6,P7,P9",8,160,0.916,0.8600000000000001,0.784,0.6599999999999999,0.9375,0.5,1.0,1.0
+Database_20AA,Drop_One_Position,Drop_P9,Drop P9 (keep remaining 8),Drop_P9,"P1,P2,P3,P4,P5,P6,P7,P8",8,160,0.944,0.8400000000000001,0.756,0.71,0.8125,0.5625,1.0,1.0
+Database_20AA,Group,Position_Pooled_AA20,Position-pooled composition (P1–P9 avg.),AA20,"P1,P2,P3,P4,P5,P6,P7,P8,P9",9,20,0.6479999999999999,0.66,0.408,0.59,0.5,0.4375,0.16666666666666669,0.0
+Database_20AA,Group,Central_Bulge_4Class_Pairs,Central bulge 4-class pairs (P4–P7),Coarse96,"P4,P5,P6,P7",4,96,0.724,0.63,0.448,0.48000000000000004,0.9375,0.3125,0.25,0.5
+Database_20AA,Locus_PSSM,Locus_Stratified_ABC_Within_3x180,"Locus-stratified motifs (HLA-A, B, C Δμ)",Locus3x180_Within,"P1..P9 x (A,B,C)",9,540,0.756,0.74,0.6920000000000001,0.62,0.5,0.625,0.8333333333333334,0.5
+Database_20AA,Locus_PSSM,Locus_Stratified_ABC_Mass_3x180,"Locus-stratified mass shifts (HLA-A, B, C Δ(wμ))",Locus3x180_Mass,"P1..P9 x (A,B,C)",9,540,0.784,0.8,0.724,0.75,0.5,0.5,1.0,1.0
+Database_20AA,Locus_PSSM,Within_HLA_A_Only,Within-HLA-A motif shift (Δμ_A),Within_A,P1..P9 (HLA-A),9,180,0.8880000000000001,0.8600000000000001,0.8200000000000001,0.72,1.0,0.875,0.9166666666666667,1.0
+Database_20AA,Locus_PSSM,Within_HLA_B_Only,Within-HLA-B motif shift (Δμ_B),Within_B,P1..P9 (HLA-B),9,180,0.488,0.6000000000000001,0.5439999999999999,0.55,0.5,0.4375,0.16666666666666669,0.25
+Database_20AA,Locus_PSSM,Within_HLA_C_Only,Within-HLA-C motif shift (Δμ_C),Within_C,P1..P9 (HLA-C),9,180,0.804,0.6699999999999999,0.88,0.71,1.0,0.625,0.8333333333333334,0.5
+Isobaric_IL_Harmonized,Group,Full_9mer_Motif_P1_to_P9,Full 9-mer motif (P1–P9),PosAA180,"P1,P2,P3,P4,P5,P6,P7,P8,P9",9,171,0.916,0.8600000000000001,0.788,0.6799999999999999,1.0,0.5,1.0,1.0
+Isobaric_IL_Harmonized,Group,HLA_Anchors_P2_P9,"HLA anchors only (P2, P9)",Anchor40,"P2,P9",2,38,0.9480000000000001,0.8600000000000001,0.5599999999999999,0.6699999999999999,1.0,0.8125,0.6666666666666667,0.25
+Isobaric_IL_Harmonized,Group,Trimming_Secondary_P1_P3_P8,"Trimming & secondary (P1, P3, P8)",Flank60,"P1,P3,P8",3,57,0.656,0.59,0.484,0.53,0.625,0.4375,0.8333333333333334,0.5
+Isobaric_IL_Harmonized,Group,Central_Bulge_Residues_P4_to_P7,Central bulge residues (P4–P7),Pos80,"P4,P5,P6,P7",4,76,0.736,0.69,0.556,0.55,0.75,0.5625,0.5,0.5
+Isobaric_IL_Harmonized,Group,All_NonAnchor_P1_P3_to_P8,"All non-anchor residues (P1, P3–P8)",NonAnchor140,"P1,P3,P4,P5,P6,P7,P8",7,133,0.7439999999999999,0.6699999999999999,0.6439999999999999,0.52,0.75,0.5625,1.0,1.0
+Isobaric_IL_Harmonized,Single_Position,Only_P1,Position P1 only,Pos20_P1,P1,1,19,0.56,0.6000000000000001,0.216,0.32,0.6875,0.375,1.0,1.0
+Isobaric_IL_Harmonized,Single_Position,Only_P2,Position P2 only,Pos20_P2,P2,1,19,0.916,0.91,0.8360000000000001,0.79,0.875,0.5625,0.8333333333333334,0.75
+Isobaric_IL_Harmonized,Single_Position,Only_P3,Position P3 only,Pos20_P3,P3,1,19,0.6159999999999999,0.6000000000000001,0.524,0.69,0.875,0.3125,0.0,0.0
+Isobaric_IL_Harmonized,Single_Position,Only_P4,Position P4 only,Pos20_P4,P4,1,19,0.8280000000000001,0.74,0.728,0.6699999999999999,0.9375,0.625,0.5,0.75
+Isobaric_IL_Harmonized,Single_Position,Only_P5,Position P5 only,Pos20_P5,P5,1,19,0.64,0.69,0.492,0.5,0.875,0.6875,0.4166666666666667,0.5
+Isobaric_IL_Harmonized,Single_Position,Only_P6,Position P6 only,Pos20_P6,P6,1,19,0.392,0.5,0.256,0.38,0.5,0.25,0.8333333333333334,0.5
+Isobaric_IL_Harmonized,Single_Position,Only_P7,Position P7 only,Pos20_P7,P7,1,19,0.68,0.72,0.532,0.5,0.5625,0.75,0.0,0.0
+Isobaric_IL_Harmonized,Single_Position,Only_P8,Position P8 only,Pos20_P8,P8,1,19,0.628,0.55,0.30800000000000005,0.31,0.25,0.5625,0.3333333333333333,0.0
+Isobaric_IL_Harmonized,Single_Position,Only_P9,Position P9 only,Pos20_P9,P9,1,19,0.8760000000000001,0.69,0.36800000000000005,0.57,0.8125,0.4375,0.7500000000000001,0.25
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P1,Drop P1 (keep remaining 8),Drop_P1,"P2,P3,P4,P5,P6,P7,P8,P9",8,152,0.928,0.8600000000000001,0.776,0.6599999999999999,1.0,0.5,0.16666666666666663,0.5
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P2,Drop P2 (keep remaining 8),Drop_P2,"P1,P3,P4,P5,P6,P7,P8,P9",8,152,0.904,0.79,0.704,0.56,0.875,0.625,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P3,Drop P3 (keep remaining 8),Drop_P3,"P1,P2,P4,P5,P6,P7,P8,P9",8,152,0.912,0.8600000000000001,0.8200000000000001,0.69,0.9375,0.5625,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P4,Drop P4 (keep remaining 8),Drop_P4,"P1,P2,P3,P5,P6,P7,P8,P9",8,152,0.888,0.8400000000000001,0.72,0.6000000000000001,0.8125,0.4375,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P5,Drop P5 (keep remaining 8),Drop_P5,"P1,P2,P3,P4,P6,P7,P8,P9",8,152,0.9319999999999999,0.8600000000000001,0.764,0.61,0.8125,0.4375,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P6,Drop P6 (keep remaining 8),Drop_P6,"P1,P2,P3,P4,P5,P7,P8,P9",8,152,0.944,0.8600000000000001,0.864,0.7,1.0,0.8125,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P7,Drop P7 (keep remaining 8),Drop_P7,"P1,P2,P3,P4,P5,P6,P8,P9",8,152,0.936,0.8600000000000001,0.824,0.72,1.0,0.4375,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P8,Drop P8 (keep remaining 8),Drop_P8,"P1,P2,P3,P4,P5,P6,P7,P9",8,152,0.9319999999999999,0.8600000000000001,0.8,0.6599999999999999,0.875,0.5,1.0,1.0
+Isobaric_IL_Harmonized,Drop_One_Position,Drop_P9,Drop P9 (keep remaining 8),Drop_P9,"P1,P2,P3,P4,P5,P6,P7,P8",8,152,0.964,0.8400000000000001,0.788,0.65,0.875,0.5,1.0,1.0
+Isobaric_IL_Harmonized,Group,Position_Pooled_AA20,Position-pooled composition (P1–P9 avg.),AA20,"P1,P2,P3,P4,P5,P6,P7,P8,P9",9,19,0.648,0.71,0.396,0.55,0.5,0.4375,0.16666666666666669,0.0
+Isobaric_IL_Harmonized,Group,Central_Bulge_4Class_Pairs,Central bulge 4-class pairs (P4–P7),Coarse96,"P4,P5,P6,P7",4,96,0.724,0.63,0.448,0.48000000000000004,0.9375,0.3125,0.25,0.5
+Isobaric_IL_Harmonized,Locus_PSSM,Locus_Stratified_ABC_Within_3x180,"Locus-stratified motifs (HLA-A, B, C Δμ)",Locus3x180_Within,"P1..P9 x (A,B,C)",9,513,0.768,0.69,0.68,0.62,0.5,0.625,0.8333333333333334,0.5
+Isobaric_IL_Harmonized,Locus_PSSM,Locus_Stratified_ABC_Mass_3x180,"Locus-stratified mass shifts (HLA-A, B, C Δ(wμ))",Locus3x180_Mass,"P1..P9 x (A,B,C)",9,513,0.788,0.8,0.724,0.75,0.5625,0.4375,1.0,1.0
+Isobaric_IL_Harmonized,Locus_PSSM,Within_HLA_A_Only,Within-HLA-A motif shift (Δμ_A),Within_A,P1..P9 (HLA-A),9,171,0.88,0.8600000000000001,0.812,0.72,1.0,0.875,0.9166666666666667,1.0
+Isobaric_IL_Harmonized,Locus_PSSM,Within_HLA_B_Only,Within-HLA-B motif shift (Δμ_B),Within_B,P1..P9 (HLA-B),9,171,0.492,0.6000000000000001,0.376,0.55,0.5,0.4375,0.16666666666666669,0.25
+Isobaric_IL_Harmonized,Locus_PSSM,Within_HLA_C_Only,Within-HLA-C motif shift (Δμ_C),Within_C,P1..P9 (HLA-C),9,171,0.76,0.7,0.868,0.64,1.0,0.625,0.8333333333333334,0.5

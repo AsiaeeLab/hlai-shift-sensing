@@ -1,0 +1,12 @@
+mode	frac_genes_removed	lolo_auroc_pos180	lolo_auroc_anchor40	zero_feature_test_contrasts
+Top_1_Peptide_Markers_Only	0.0	0.252	0.252	34
+Top_3_Peptide_Markers_Only	0.0	0.81	0.81	16
+Top_5_Peptide_Markers_Only	0.0	0.8460000000000001	0.8460000000000001	5
+Top_10_Peptide_Markers_Only	0.0	0.602	0.602	4
+Top_25_Peptide_Markers_Only	0.0	0.698	0.698	2
+Collective_Distribution_After_TopGene_Ablation	0.0	0.948	0.9359999999999999	0
+Collective_Distribution_After_TopGene_Ablation	0.01	0.936	0.972	0
+Collective_Distribution_After_TopGene_Ablation	0.05	0.8160000000000001	0.7600000000000001	0
+Collective_Distribution_After_TopGene_Ablation	0.1	0.86	0.776	0
+Collective_Distribution_After_TopGene_Ablation	0.25	0.728	0.612	0
+Collective_Distribution_After_TopGene_Ablation	0.5	0.62	0.712	0

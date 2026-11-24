@@ -1,0 +1,17 @@
+{
+  "velz_microenvironment": {
+    "r_pred_target_marginal": 0.35917083737735345,
+    "p_pred_target_marginal": 0.06050573103719474,
+    "r_pred_target_given_subgroup": 0.3662557817444675,
+    "p_pred_target_given_subgroup": 0.07175242073450436,
+    "r_pred_target_given_subgroup_and_microenv": 0.2390826471580987,
+    "p_pred_target_given_subgroup_and_microenv": 0.2839103770218122,
+    "r_angio_vs_hlai_b2m": 0.7874948463558255,
+    "p_angio_vs_hlai_b2m": 6.606237904819021e-07
+  },
+  "perturbation_r2_min": 0.011154409169296034,
+  "perturbation_r2_max": 0.15601849389909891,
+  "ifng_diverging_gt2fold_min": 0.2669172932330827,
+  "ifng_diverging_gt2fold_max": 0.6079734219269103,
+  "n_benchmark_rows": 15
+}

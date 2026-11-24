@@ -1,0 +1,9 @@
+{
+  "erap1_denovo_10_11mer_frac": 0.7811158798283262,
+  "tap2_leader_minus_internal_log2": 5.447528605445292,
+  "tap2_leader_fisher_p": 2.3770235290019563e-41,
+  "tap1_hallmark50_r_sigpep_vs_retention": 0.4544409013655967,
+  "tap1_hallmark50_p_sigpep_vs_retention": 0.0010375387788593446,
+  "tap1_hallmark50_r_sec_vs_u": 0.1594106960407401,
+  "tap1_hallmark50_p_sec_vs_u": 0.30722076488567374
+}

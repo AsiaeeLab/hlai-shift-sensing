@@ -1,0 +1,55 @@
+{
+  "n_total_baseline_peptides": 6998,
+  "mean_auroc_by_endpoint": {
+    "durable": {
+      "Baseline_MS_Pep0": 0.5273,
+      "Intracellular_Prot0": 0.4183,
+      "MHCflurry_Affinity": 0.6351,
+      "Mechanistic_Censored": 0.5884,
+      "Unstratified_Pooled_Logit": 0.4805,
+      "Virtual_Prot0_plus_Aff": 0.6107
+    },
+    "high_persist": {
+      "Baseline_MS_Pep0": 0.8686,
+      "Intracellular_Prot0": 0.5119,
+      "MHCflurry_Affinity": 0.5789,
+      "Mechanistic_Censored": 0.8716,
+      "Unstratified_Pooled_Logit": 0.8622,
+      "Virtual_Prot0_plus_Aff": 0.5764
+    },
+    "retained": {
+      "Baseline_MS_Pep0": 0.7035,
+      "Intracellular_Prot0": 0.4546,
+      "MHCflurry_Affinity": 0.6211,
+      "Mechanistic_Censored": 0.7246,
+      "Unstratified_Pooled_Logit": 0.6354,
+      "Virtual_Prot0_plus_Aff": 0.5718
+    }
+  },
+  "mean_top20_portfolio_by_endpoint": {
+    "durable": {
+      "Baseline_MS_Pep0": 0.7125,
+      "Intracellular_Prot0": 0.7625,
+      "MHCflurry_Affinity": 0.825,
+      "Mechanistic_Censored": 0.7375,
+      "Unstratified_Pooled_Logit": 0.6625,
+      "Virtual_Prot0_plus_Aff": 0.725
+    },
+    "high_persist": {
+      "Baseline_MS_Pep0": 0.9875,
+      "Intracellular_Prot0": 0.6,
+      "MHCflurry_Affinity": 0.425,
+      "Mechanistic_Censored": 0.9875,
+      "Unstratified_Pooled_Logit": 0.9875,
+      "Virtual_Prot0_plus_Aff": 0.5625
+    },
+    "retained": {
+      "Baseline_MS_Pep0": 0.9875,
+      "Intracellular_Prot0": 0.9,
+      "MHCflurry_Affinity": 0.8875,
+      "Mechanistic_Censored": 0.9875,
+      "Unstratified_Pooled_Logit": 0.975,
+      "Virtual_Prot0_plus_Aff": 0.9
+    }
+  }
+}

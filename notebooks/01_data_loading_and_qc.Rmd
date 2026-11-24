@@ -1,0 +1,492 @@
+---
+title: "Report 01: Mass-Spectrometry Data Ingestion, Scale Contrast, and Quality Audit"
+subtitle: "Raw inspection of 12 staged tables across nine human cohorts, sample scale contrast, and provenance traps"
+author: "Amir Asiaee, Nebojša Jojić, Elizabeth J. Phillips, and Simon A. Mallal"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    theme: flatly
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 3
+    number_sections: true
+    code_folding: show
+    self_contained: true
+    fig_width: 9.5
+    fig_height: 5.5
+    df_print: kable
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE, message = FALSE, warning = FALSE,
+  fig.align = "center", dev = "png", dpi = 150
+)
+
+py_bin <- Sys.getenv("RETICULATE_PYTHON", unset = "")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python3")
+if (!nzchar(py_bin)) py_bin <- Sys.which("python")
+if (nzchar(py_bin)) Sys.setenv(RETICULATE_PYTHON = py_bin)
+Sys.setenv(OMP_NUM_THREADS = "1", MKL_NUM_THREADS = "1", OPENBLAS_NUM_THREADS = "1", PYTHONDONTWRITEBYTECODE = "1")
+
+suppressPackageStartupMessages({
+  library(reticulate)
+  library(readr)
+  library(dplyr)
+  library(tidyr)
+  library(ggplot2)
+  library(patchwork)
+  library(scales)
+  library(kableExtra)
+})
+
+nz_env <- function(var, fallback) {
+  val <- Sys.getenv(var, unset = "")
+  if (nzchar(val)) val else fallback
+}
+DATA_DIR <- nz_env("DATA_CACHE", nz_env("DATA_DIR", if (dir.exists("../data")) "../data" else "../../data"))
+PROC_DIR <- nz_env("PROCESSED_CACHE", nz_env("PROCESSED_DIR", file.path(DATA_DIR, "processed")))
+RES_DIR  <- nz_env("RESULTS_CACHE", nz_env("RESULTS_DIR", if (dir.exists("../results")) "../results" else "../../results"))
+REPO_DIR <- normalizePath(if (dir.exists("../src")) ".." else "../..", mustWork = FALSE)
+invisible(py_config())
+
+BLUE   <- "#0072B2"
+NAVY   <- "#1B4F72"
+ORANGE <- "#D55E00"
+LBLUE  <- "#56B4E9"
+GRAY   <- "#666666"
+TEAL   <- "#009E73"
+GOLD   <- "#E69F00"
+PURPLE <- "#CC79A7"
+
+theme_report <- function(base_size = 11.5) {
+  theme_minimal(base_size = base_size) +
+    theme(
+      plot.title       = element_text(face = "bold", size = base_size + 1),
+      axis.title       = element_text(size = base_size - 0.5),
+      axis.text        = element_text(size = base_size - 1.5, color = "grey20"),
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "grey90", linewidth = 0.3),
+      legend.position  = "bottom",
+      legend.title     = element_text(size = base_size - 1.5),
+      legend.text      = element_text(size = base_size - 1.5),
+      plot.tag         = element_text(face = "bold", size = base_size + 1)
+    )
+}
+theme_set(theme_report())
+
+tagged <- function(p) {
+  p + plot_annotation(tag_levels = "A", tag_suffix = ".") &
+    theme(plot.tag = element_text(face = "bold", size = 13))
+}
+
+show_tbl <- function(x, caption = NULL, ...) {
+  kbl(x, caption = caption, booktabs = TRUE, ...) |>
+    kable_styling(bootstrap_options = c("striped", "hover", "condensed"),
+                  full_width = FALSE, position = "left")
+}
+```
+
+[Back to Master Index](00_index.html) | [Next: Report 02 — Core Model & Geometry](02_presentation_state_model.html)
+
+# Rationale and Analytical Scope
+
+Before deriving sequence-composition maps or fitting any regression, every staged table from the nine public multimodal cohorts must be audited directly at the observation level. Mass-spectrometry immunopeptidomics exports routinely hide implicit missingness (zero intensities, unmapped accessions, semicolon multi-gene groups), duplicated sample-peptide keys, excluded runs, shared TMT baseline channels, swapped SILAC isotope channel polarity, and multi-date acquisition batches. In this report I load all 12 staged peptide tables plus matched multi-omic metadata, inspect their dimensions and raw structures, contrast two real biological samples side-by-side to ground the numerical scale, verify peptide length (`8–14`-mer) and canonical 20-amino-acid integrity, and lock down our explicit cleaning rules.
+
+```{python env-paths, include=FALSE}
+import io
+import json
+from pathlib import Path
+import numpy as np
+import pandas as pd
+
+DATA_ROOT = Path(r.DATA_DIR)
+PROC_ROOT = Path(r.PROC_DIR)
+RES_ROOT  = Path(r.RES_DIR)
+AMINO_ACIDS = "ACDEFGHIKLMNPQRSTVWY"
+
+def p_path(*parts):
+    cand = PROC_ROOT.joinpath(*parts)
+    if cand.exists():
+        return cand
+    if parts:
+        if parts[0] == "annotations":
+            alt = PROC_ROOT.joinpath("salvage", *parts[1:])
+            if alt.exists():
+                return alt
+        elif parts[0] == "followup":
+            alt = PROC_ROOT.joinpath("salvage_followup", *parts[1:])
+            if alt.exists():
+                return alt
+    fb = DATA_ROOT.joinpath("processed", *parts)
+    if fb.exists():
+        return fb
+    return cand
+```
+
+# Raw Data Loading, Dimensions, `str()`, and `head()`
+
+### Rationale
+
+I load every staged peptide table separately before joining or normalizing, recording raw dimensions (`nrow x ncol`), unique biological sample/entry counts versus eluted peptide row counts, unique sequence counts, canonical 9-mer proportions, and column data types.
+
+```{python raw-ingestion}
+cohort_specs = [
+    ("Stopfer CDK4/6i melanoma", "stopfer/peptides_long.tsv", "\t", "peptide", "signal", "sample_id"),
+    ("Newey CRC PDO (2018 replicates)", "newey2019_replicates/peptides_long.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Newey CRC PDO (2023 synthesis)", "newey2023/peptides_long.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Velz medulloblastoma (N=28)", "velz2025/peptides_long.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Bathini MHC1-TIP PDO", "visibility_mhc1tip_gene_unique/pdo/peptides.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Bathini MHC1-TIP A375", "visibility_mhc1tip_gene_unique/a375/peptides.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Chong ovarian (UWB1.289)", "visibility_replication/chong2018_gene_unique/peptides.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Shapiro HAP1 11-KO atlas", "visibility_hap1_gene_unique/peptides.tsv.gz", "\t", "peptide", "normalized_intensity_positive_only", "sample_id"),
+    ("Abelin MONTE LUAD (HLA-I)", "visibility_monte/peptides_global_source_strict.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Abelin MONTE LUAD (HLA-II strict)", "annotations/monte_hlaii_strict.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Stopfer 2022 MEKi melanoma", "followup/stopfer2022_peptides.tsv.gz", "\t", "peptide", "intensity", "sample_id"),
+    ("Bernhardt 2025 pulsed-SILAC", "followup/bernhardt2025_psilac_peptides.tsv.gz", "\t", "peptide", "intensity_total", "sample_id"),
+]
+
+inv_rows = []
+loaded_meta = {}
+for cname, rel, sep, pcol, icol, scol in cohort_specs:
+    fp = p_path(*rel.split("/"))
+    df = pd.read_csv(fp, sep=sep, low_memory=False)
+    peps = df[pcol].astype(str)
+    len_s = peps.str.len()
+    inv_rows.append({
+        "Cohort_Table": cname,
+        "Rows": int(len(df)),
+        "Cols": int(df.shape[1]),
+        "Samples_or_Entries": int(df[scol].nunique()),
+        "Unique_Peptides": int(peps.nunique()),
+        "Pct_9mers": round(100.0 * float((len_s == 9).mean()), 1),
+        "Column_Types": f"{len(df.select_dtypes(include=[np.number]).columns)} num / {len(df.select_dtypes(exclude=[np.number]).columns)} obj",
+    })
+    loaded_meta[cname] = (df, pcol, icol, scol)
+
+inv_df = pd.DataFrame(inv_rows)
+total_obs = int(inv_df["Rows"].sum())
+
+hap1_samples = pd.read_csv(p_path("visibility_hap1_gene_unique", "samples.tsv"), sep="\t")
+hap1_samples["hla_genotype"] = hap1_samples["hla_genotype"].astype(str).str.replace("*", "\\*", regex=False)
+bern_head = loaded_meta["Bernhardt 2025 pulsed-SILAC"][0].loc[:, [
+    "table", "cell_line", "intervention", "time_h", "peptide", "gene", "hla_allele", "l2fc_trt_vs_ref", "ratio_reliable"
+]].head(10).copy()
+bern_head["hla_allele"] = bern_head["hla_allele"].astype(str).str.replace("*", "\\*", regex=False)
+```
+
+```{r inspect-structure}
+# Print R str() on the staged HAP1 sample metadata and Bernhardt SILAC head
+str(py$hap1_samples)
+str(py$bern_head)
+```
+
+```{r show-inventory-tables}
+show_tbl(py$inv_df, caption = "Table 1.1: Raw inventory across all 12 staged peptide tables (dimensions, sample/entry units, unique peptides, and 9-mer shares).")
+show_tbl(head(py$hap1_samples, 12), caption = "Table 1.2: First 12 rows of Shapiro HAP1 CRISPR sample metadata (run dates, biological replicates, and inclusion flags).")
+show_tbl(py$bern_head, digits = 3, caption = "Table 1.3: First 10 rows of the staged Bernhardt 2025 pulsed-SILAC HLA-I peptide table.")
+```
+
+**What do we see?**
+
+Across the 12 staged peptide tables (Table 1.1), the combined deposit totals **1,536,041** rows ranging from `11,164` (`Bathini MHC1-TIP A375`, `7` columns) to `512,594` (`Newey CRC PDO 2018 replicates`, `13` columns) and `319,406` (`Stopfer 2022 MEKi melanoma`, `13` columns), with biological sample/entry counts spanning `5` (`A375`) to `143` (`Stopfer 2022`). Across the 11 HLA class I tables, canonical `9`-mers make up `48.7%` (`Bathini PDO`) to `71.1%` (`Velz medulloblastoma`) of eluted entries, whereas the `Abelin MONTE HLA-II strict` negative-control table (`24,595` rows across `10` tumors) contains `0.0%` `9`-mers because class II ligands span longer nested cores. R `str()` and `head()` (Tables 1.2–1.3) confirm typed fields in `HAP1` (`72` samples across two modalities, explicit `run_dates` integers like `20201218` and `20201211`, semicolon-delimited four-digit genotypes `HLA-A*02:01;HLA-B*40:01;HLA-C*03:04`) and in `Bernhardt 2025` (`l2fc_trt_vs_ref`, binary `ratio_reliable`, and per-peptide allele annotations).
+
+---
+
+# Two Real Samples for Scale
+
+### Rationale
+
+Summary averages across 1.54 million observations hide how drastically individual biological samples differ in depth, length balance, and HLA binding motifs. Following the empirical scale-contrast approach of Coombes and Bombina, I compare two pairs of concrete individual samples side-by-side: (1) two isogenic `HAP1` biological replicates (`HAP1_control_BR1_peptide` vs. `HAP1_TAP2_KO_BR1_peptide`, plus `HAP1_ERAP1_KO_BR1_peptide` for length shift), and (2) two individual melanoma pulsed-SILAC samples from completely disjoint HLA backgrounds (`Ma-Mel-63a` 24 h IFN-$\gamma$ vs. `SK-Mel-28 wt` 72 h vemurafenib + cobimetinib).
+
+```{python two-samples-for-scale}
+# Contrast 1: Real HAP1 biological replicate samples
+hp_df = loaded_meta["Shapiro HAP1 11-KO atlas"][0]
+hap_eg_ids = ["HAP1_control_BR1_peptide", "HAP1_ERAP1_KO_BR1_peptide", "HAP1_TAP2_KO_BR1_peptide"]
+hap_scale_rows = []
+for sid in hap_eg_ids:
+    sub = hp_df[hp_df["sample_id"] == sid].copy()
+    lens = sub["peptide"].astype(str).str.len()
+    hap_scale_rows.append({
+        "Sample_ID": sid,
+        "Unique_Peptides": int(sub["peptide"].nunique()),
+        "Total_Norm_Intensity": f"{sub['normalized_intensity_positive_only'].sum():.2e}",
+        "Median_Intensity": round(float(sub["normalized_intensity_positive_only"].median()), 1),
+        "Pct_8mer": round(100.0 * float((lens == 8).mean()), 1),
+        "Pct_9mer": round(100.0 * float((lens == 9).mean()), 1),
+        "Pct_10_11mer": round(100.0 * float(lens.isin([10, 11]).mean()), 1),
+        "Top_Peptide": str(sub.sort_values("normalized_intensity_positive_only", ascending=False)["peptide"].iloc[0]),
+    })
+hap_scale_df = pd.DataFrame(hap_scale_rows)
+
+# Contrast 2: Two real Bathini/Chong IFN-gamma biological replicates + Bernhardt zero-HLA-overlap runs
+pdo_df = loaded_meta["Bathini MHC1-TIP PDO"][0]
+ch_df  = loaded_meta["Chong ovarian (UWB1.289)"][0]
+bp_df  = loaded_meta["Bernhardt 2025 pulsed-SILAC"][0]
+
+bio_eg_rows = []
+for tag, sub, pcol, icol in [
+    ("ITO58M_IFNg_rep1 (CRC PDO)", pdo_df[pdo_df["sample_id"] == "mhc1tip_peptide_ITO58M_IFNG_1"], "peptide", "intensity"),
+    ("UWB1.289_IFNg_rep1 (OvCa)", ch_df[ch_df["sample_id"] == "chong2018_peptide_IFNG_1"], "peptide", "intensity"),
+]:
+    lens = sub[pcol].astype(str).str.len()
+    bio_eg_rows.append({
+        "Sample": tag,
+        "Unique_Peptides": int(sub[pcol].nunique()),
+        "Median_Log2_Intensity": round(float(np.log2(sub[icol].replace(0, np.nan).dropna()).median()), 2),
+        "Pct_9mer": round(100.0 * float((lens == 9).mean()), 1),
+        "P2_Leu_Pct": round(100.0 * float((sub.loc[lens == 9, pcol].str[1] == "L").mean()), 1),
+        "P9_Lys_Pct": round(100.0 * float((sub.loc[lens == 9, pcol].str[8] == "K").mean()), 1),
+    })
+
+for tag, cond_df in [
+    ("MaMel63a IFNg 24h (Table 4)", bp_df[(bp_df["table"] == "Table4") & (bp_df["time_h"] == 24)]),
+    ("SKMel28_wt VemuCobi 72h (Table 10)", bp_df[(bp_df["table"] == "Table10") & (bp_df["time_h"] == 72)]),
+]:
+    d = cond_df.drop_duplicates("peptide")
+    lens = d["peptide"].astype(str).str.len()
+    d9 = d[lens == 9]
+    bio_eg_rows.append({
+        "Sample": tag,
+        "Unique_Peptides": int(len(d)),
+        "Median_Log2_Intensity": round(float(np.log2(d["intensity_total"].replace(0, np.nan).dropna()).median()), 2),
+        "Pct_9mer": round(100.0 * float((lens == 9).mean()), 1),
+        "P2_Leu_Pct": round(100.0 * float((d9["peptide"].str[1] == "L").mean()), 1),
+        "P9_Lys_Pct": round(100.0 * float((d9["peptide"].str[8] == "K").mean()), 1),
+    })
+bio_scale_df = pd.DataFrame(bio_eg_rows)
+```
+
+```{r show-two-samples}
+show_tbl(py$hap_scale_df, caption = "Table 1.4: Real individual biological samples contrasted for scale in HAP1 (Wild-Type vs. ERAP1 KO vs. TAP2 KO).")
+show_tbl(py$bio_scale_df, caption = "Table 1.5: Real organoid/ovarian IFN-gamma replicates and zero-HLA-overlap melanoma pSILAC runs contrasted side-by-side.")
+```
+
+**What do we see?**
+
+Contrasting concrete individual runs side-by-side makes the dynamic range of raw immunopeptidomes immediately concrete (Tables 1.4–1.5):
+
+- **Isogenic `HAP1` biological replicates:** Wild-type `HAP1_control_BR1_peptide` yields `15,716` unique peptides (`9.36e+09` total normalized intensity, median `104,531.5`), dominated by `66.8%` `9`-mers and `27.7%` `10–11`-mers (`5.5%` `8`-mers; top ligand `GEVDPKVAL`). Deleting *ERAP1* (`HAP1_ERAP1_KO_BR1_peptide`) halves observed breadth (`6,694` peptides) while shifting length upward toward untrimmed `10–11`-mers (`34.7%`; top ligand `SIYPSPTGV`). Deleting *TAP2* (`HAP1_TAP2_KO_BR1_peptide`) collapses breadth by `86.7%` (`2,090` peptides), doubles `8`-mer share to `12.7%`, and leaves the repertoire topped by the N-terminal leader peptide `LLLPGPSAA` (`2.40e+10` summed signal among surviving entries).
+- **Primary organoid, ovarian, and melanoma runs:** Individual `ITO58M_IFNg_rep1` (`2,316` peptides, median $\log_2$ intensity `19.71`) shows `23.2%` P2-Leu vs. `1.6%` P9-Lys, whereas ovarian `UWB1.289_IFNg_rep1` (`4,396` peptides, median `25.09`) carries `28.6%` P9-Lys. In pulsed-SILAC melanoma, `MaMel63a IFNg 24h` (`4,984` peptides) is strongly P2-Leu enriched (`44.1%` P2-Leu vs. `25.1%` P9-Lys), whereas `SKMel28_wt VemuCobi 72h` (`3,223` peptides) shifts sharply to `70.4%` P9-Lys with only `13.4%` P2-Leu.
+
+---
+
+# Completeness, Missingness, Peptide Length, and Contaminant QC
+
+### Rationale
+
+I audit explicit `NA` counts, implicit zero or non-positive signals, empty or `"UNMAPPED"` gene names, semicolon-delimited multi-gene strings (`GENE1;GENE2`), non-canonical amino-acid characters outside the 20 standard residues, and exact duplicate `(sample_id, peptide)` keys across all 12 tables, plus column-level missingness in the integrated `Stopfer 2022` `SKMEL5` multi-omics table.
+
+```{python missingness-and-qc}
+miss_rows = []
+dup_rows = []
+for cname, (df, pcol, icol, scol) in loaded_meta.items():
+    n_rows = len(df)
+    na_int = int(df[icol].isna().sum()) if icol in df.columns else 0
+    num_vals = pd.to_numeric(df[icol], errors="coerce") if icol in df.columns else pd.Series(dtype=float)
+    zero_or_neg = int((num_vals <= 0).sum())
+    gcol = "gene" if "gene" in df.columns else None
+    na_gene = int(df[gcol].isna().sum()) if gcol else n_rows
+    empty_gene = int((df[gcol].astype(str).str.strip().isin(["", "nan", "None", "UNMAPPED"])).sum()) if gcol else 0
+    ambig_gene = int(df[gcol].astype(str).str.contains(";").sum()) if gcol else 0
+    peps = df[pcol].astype(str)
+    noncanonical_aa = int((~peps.map(lambda s: set(s) <= set(AMINO_ACIDS))).sum())
+    out_8_14 = int((~peps.str.len().between(8, 14)).sum())
+    complete_req = int(df[[c for c in (pcol, icol, gcol) if c is not None]].dropna().shape[0])
+    miss_rows.append({
+        "Cohort_Table": cname,
+        "Rows": n_rows,
+        "Explicit_NA_Int": na_int,
+        "Zero_NonPos": zero_or_neg,
+        "Empty_Unmapped_Gene": empty_gene,
+        "MultiGene_Semicolon": ambig_gene,
+        "NonCanonical_AA": noncanonical_aa,
+        "Outside_8_14mer": out_8_14,
+        "Complete_Pct": round(100.0 * complete_req / max(n_rows, 1), 1),
+    })
+    dup_rows.append({
+        "Cohort_Table": cname,
+        "Exact_Row_Dups": int(df.duplicated().sum()),
+        "Dup_Sample_Peptide_Keys": int(df.duplicated(subset=[scol, pcol]).sum()),
+    })
+
+miss_df = pd.DataFrame(miss_rows)
+dup_df = pd.DataFrame(dup_rows)
+
+sk5_om = pd.read_csv(p_path("followup", "stopfer2022_skmel5_multiomics.tsv.gz"), sep="\t")
+sk5_na = pd.DataFrame({
+    "Column": sk5_om.columns,
+    "Dtype": [str(t) for t in sk5_om.dtypes],
+    "Explicit_NA": [int(sk5_om[c].isna().sum()) for c in sk5_om.columns],
+    "Pct_Missing": [round(100.0 * sk5_om[c].isna().mean(), 1) for c in sk5_om.columns],
+})
+```
+
+```{r show-missing-dups}
+show_tbl(py$miss_df, caption = "Table 1.6: Missingness, gene-mapping ambiguity, sequence alphabet, and 8-14-mer length integrity across all 12 staged tables.")
+show_tbl(py$dup_df, caption = "Table 1.7: Exact row duplicates and duplicate (sample_id, peptide) keys.")
+show_tbl(py$sk5_na, caption = "Table 1.8: Column-level missingness in the Stopfer 2022 SKMEL5 multi-omics matrix.")
+```
+
+**What do we see?**
+
+Tables 1.6–1.8 quantify exact sequence hygiene and cohort-specific missingness before any filtering:
+
+- **Sequence alphabet & duplication:** Across all `1,536,041` staged rows, there are `0` non-canonical amino-acid characters (`NonCanonical_AA = 0` everywhere), `0` exact duplicate rows, and `0` duplicate `(sample_id, peptide)` keys. Class I peptide lengths outside `8–14` residues remain rare (`0.0%–1.3%`; e.g., `270 / 52,338` in `Stopfer 2020`, `1,781 / 319,406` in `Stopfer 2022`), whereas `Abelin MONTE HLA-II strict` naturally sits outside `8–14`-mers (`15,897 / 24,595` longer class II ligands).
+- **Gene ambiguity & explicit/zero missingness:** `Newey 2018` carries `36,313` semicolon multi-gene groups and `691` empty/unmapped gene strings; `Newey 2023` reports `8,971` explicit `NA` intensities (`87.6%` completeness); `Velz 2025` contains `1,888` zero intensities; and `Bernhardt 2025` contains `5,979` zero total-intensity entries plus `129` unmapped gene labels (`99.8%` key completeness). In `Stopfer 2022 SKMEL5` (`17,058` genes, Table 1.8), RNA-seq has only `87` (`0.5%`) NAs, whereas whole proteome (`11,875` NAs, `69.6%`) and ubiquitylation (`16,355` NAs, `95.9%`) cover narrower subsets requiring explicit non-missing filtering per regression.
+
+---
+
+# Structural Cohort Traps and Donor Anchor Geometry
+
+### Rationale
+
+Beyond missing values and duplicates, six structural data traps were uncovered during provenance auditing of the original deposits: (1) an outlier control sample in `Bathini A375`; (2) reused DMSO baseline channels across doses in `Stopfer 2020`; (3) acquisition-era confounding (`2017` untreated vs. `2018` treated) in `Newey 2019`; (4) inverted SILAC Medium/Heavy labeling in `Bernhardt Table 4` relative to `Tables 7–11`; (5) run-date separation between `TAP1/2` (`20201127`) and the other nine `HAP1` knockouts; and (6) serial flow-through (`FT`) vs. independent non-depleted (`noIP`) tissue aliquots in `Abelin MONTE`. Furthermore, checking P2 and P9 anchor motifs and four-digit HLA overlap between `Ma-Mel-63a`/`UKE-Mel-105b` and `SK-Mel-28` establishes the zero-HLA-overlap transfer baseline.
+
+```{python traps-and-anchors}
+qc_rows = []
+for tag, pdir in [
+    ("Bathini PDO", p_path("visibility_mhc1tip_gene_unique", "pdo")),
+    ("Bathini A375", p_path("visibility_mhc1tip_gene_unique", "a375")),
+    ("Chong UWB1.289", p_path("visibility_replication", "chong2018_gene_unique")),
+    ("Shapiro HAP1", p_path("visibility_hap1_gene_unique")),
+]:
+    sm = pd.read_csv(pdir / "samples.tsv", sep="\t")
+    excl = sm[sm["included"] == False]
+    qc_rows.append({
+        "Cohort": tag,
+        "Total_Samples": int(len(sm)),
+        "Included": int((sm["included"] == True).sum()),
+        "Excluded": int(len(excl)),
+        "Excluded_IDs": ", ".join(excl["sample_id"].astype(str).tolist()) if len(excl) else "None",
+        "QC_Reason": "; ".join(excl["qc_reason"].dropna().astype(str).unique().tolist()) if len(excl) and "qc_reason" in excl.columns else "None",
+    })
+qc_df = pd.DataFrame(qc_rows)
+
+st20_s = pd.read_csv(p_path("stopfer", "samples.tsv"), sep="\t")
+st20_reuse = int(st20_s["control_reuse_across_doses"].fillna(False).astype(bool).sum()) if "control_reuse_across_doses" in st20_s.columns else 0
+nw_s = pd.read_csv(p_path("newey2019_replicates", "samples.tsv"), sep="\t")
+nw_era = nw_s.groupby(["condition", "acquisition_era"]).size().reset_index(name="n_samples")
+
+bern_pol = bp_df[bp_df["experiment_tag"] == "Treat_T1"].groupby(["table", "cell_line", "intervention"]).agg(
+    n_peps=("peptide", "count"),
+    n_reliable=("ratio_reliable", "sum"),
+    median_raw_l2_hm=("norm_l2_hm", "median"),
+    median_trt_vs_ref=("l2fc_trt_vs_ref", "median"),
+    median_H_pulse=("intensity_H", "median"),
+    median_M_pulse=("intensity_M", "median"),
+).reset_index()
+
+# Peptide length & anchor distributions
+len_rows = []
+for cname in ["Bathini MHC1-TIP PDO", "Chong ovarian (UWB1.289)", "Shapiro HAP1 11-KO atlas", "Abelin MONTE LUAD (HLA-I)", "Bernhardt 2025 pulsed-SILAC"]:
+    df, pcol, _, _ = loaded_meta[cname]
+    d = df.drop_duplicates(pcol).copy()
+    L = d[pcol].astype(str).str.len()
+    row = {"Cohort": cname, "Unique_Peps": int(len(d))}
+    for k in [8, 9, 10, 11, 12]:
+        row[f"Pct_{k}mer"] = round(100.0 * float((L == k).mean()), 1)
+    row["Pct_ge13mer"] = round(100.0 * float((L >= 13).mean()), 1)
+    len_rows.append(row)
+len_df = pd.DataFrame(len_rows)
+
+bp9 = bp_df[(bp_df["length"] == 9) & (bp_df["peptide"].map(lambda s: set(str(s)) <= set(AMINO_ACIDS)))].drop_duplicates(["cell_line", "peptide"])
+p2_rows = []
+for line in ["MaMel63a", "UKEMel105b", "SKMel28_wt", "SKMel28_dr"]:
+    sub = bp9[bp9["cell_line"] == line]
+    p2_top = sub["peptide"].str[1].value_counts(normalize=True).head(4)
+    p9_top = sub["peptide"].str[8].value_counts(normalize=True).head(4)
+    p2_rows.append({
+        "Cell_Line": line,
+        "Unique_9mers": int(len(sub)),
+        "Top_P2_Anchors": ", ".join([f"{aa}:{100*v:.1f}%" for aa, v in p2_top.items()]),
+        "Top_P9_Anchors": ", ".join([f"{aa}:{100*v:.1f}%" for aa, v in p9_top.items()]),
+    })
+anchor_df = pd.DataFrame(p2_rows)
+
+b_tr_al = sorted({a for a in bp_df[bp_df["cell_line"].isin(["MaMel63a", "UKEMel105b"])]["hla_allele"].dropna().astype(str) if "*" in a})
+b_sk_al = sorted({a for a in bp_df[bp_df["cell_line"].isin(["SKMel28_wt", "SKMel28_dr"])]["hla_allele"].dropna().astype(str) if "*" in a})
+b_tr_peps = set(bp9[bp9["cell_line"].isin(["MaMel63a", "UKEMel105b"])]["peptide"])
+b_sk_peps = set(bp9[bp9["cell_line"].isin(["SKMel28_wt", "SKMel28_dr"])]["peptide"])
+uke_j = json.loads((RES_ROOT / "exp8_immunity_bridge/uke_mel_105b_genotype_and_overlap_audit.json").read_text()) if (RES_ROOT / "exp8_immunity_bridge/uke_mel_105b_genotype_and_overlap_audit.json").exists() else json.loads((RES_ROOT / "salvage/exp8_immunity_bridge/uke_mel_105b_genotype_and_overlap_audit.json").read_text())
+c_ov = uke_j["peptide_overlap_reconciliation"]["contrast_eligible_resistance_benchmark_Tables7_11"]
+il_ov = uke_j["peptide_overlap_reconciliation"]["isobaric_IL_harmonized_resistance_benchmark"]
+hla_overlap_df = pd.DataFrame([{
+    "Train_Deposited_Table_HLAs": ", ".join([a.replace("*", "\\*") for a in b_tr_al]),
+    "UKEMel105b_Reconciliation": "Paper text B\\*25:01 (0 IMGT records) vs Table 8 B\\*35:01 (400 9-mers)",
+    "SKMel28_4Digit_HLAs": ", ".join([a.replace("*", "\\*") for a in b_sk_al]),
+    "Shared_4Digit_HLAs": len(set(b_tr_al) & set(b_sk_al)),
+    "AllStaged_Shared_9mers": f"{len(b_tr_peps & b_sk_peps)} / {len(b_sk_peps)} (train {len(b_tr_peps)})",
+    "ContrastEligible_Shared_9mers": f"{c_ov['shared_9mers']} / {c_ov['skmel28_9mers']} (I=L: {il_ov['shared_unique_IL_9mers']})",
+}])
+
+# Cross-modality check in Velz and UniProt topology
+topo = pd.read_csv(p_path("annotations", "gene_topology_summary.tsv.gz"), sep="\t")
+velz_s = pd.read_csv(p_path("velz2025", "samples.tsv"), sep="\t")
+velz_rna = pd.read_csv(p_path("velz2025", "RNA_gene_tpm.tsv.gz"), sep="\t")
+velz_pep = loaded_meta["Velz medulloblastoma (N=28)"][0]
+velz_align = pd.DataFrame([{
+    "Velz_Meta": int(len(velz_s)),
+    "Velz_RNA": int(velz_rna["sample_id"].nunique()),
+    "Velz_HLA_MS": int(velz_pep["sample_id"].nunique()),
+    "Exact_ID_Match": int(len(set(velz_s["sample_id"]) & set(velz_rna["sample_id"]) & set(velz_pep["sample_id"]))),
+    "Subgroups": ", ".join([f"{k}:{v}" for k, v in velz_s["molecular_subgroup"].value_counts().items()]),
+    "UniProt_Genes": int(len(topo)),
+    "Pct_Signal_Peptide": round(100.0 * float(topo["has_signal_peptide"].mean()), 1),
+    "Pct_Secretory_ER_Memb": round(100.0 * float(topo["is_secretory_er_membrane"].mean()), 1),
+}])
+```
+
+```{r show-traps-anchors}
+show_tbl(py$qc_df, caption = "Table 1.9: Sample inclusion vs. QC exclusion audit across Bathini, Chong, and HAP1.")
+show_tbl(py$nw_era, caption = "Table 1.10: Acquisition-era structure in Newey 2019 colorectal organoids (2017 UT vs 2018 IFNg/TRAM).")
+show_tbl(py$bern_pol, digits = 3, caption = "Table 1.11: Bernhardt 2025 24 h SILAC channel polarity audit showing Table 4 inversion (M=IFNg, H=Ctrl).")
+show_tbl(py$len_df, caption = "Table 1.12: Peptide length distributions across unique peptides per cohort.")
+show_tbl(py$anchor_df, caption = "Table 1.13: Top P2 and P9 anchor residues in Bernhardt 2025 melanoma cell lines.")
+show_tbl(py$hla_overlap_df, caption = "Table 1.14: Zero four-digit HLA allele overlap between Ma-Mel-63a / UKE-Mel-105b training lines and SK-Mel-28.")
+show_tbl(py$velz_align, caption = "Table 1.15: Cross-modality alignment in Velz medulloblastomas (N=28) and UniProt human topology coverage.")
+```
+
+```{r fig-qc-lengths, fig.width=10.2, fig.height=4.4}
+len_long <- py$len_df |>
+  select(Cohort, Pct_8mer, Pct_9mer, Pct_10mer, Pct_11mer, Pct_12mer, Pct_ge13mer) |>
+  pivot_longer(-Cohort, names_to = "Len", values_to = "Pct") |>
+  mutate(Len = recode(Len, Pct_8mer = "8", Pct_9mer = "9", Pct_10mer = "10", Pct_11mer = "11", Pct_12mer = "12", Pct_ge13mer = ">=13"),
+         Len = factor(Len, levels = c("8", "9", "10", "11", "12", ">=13")))
+
+p_len <- ggplot(len_long, aes(x = Len, y = Pct, color = Cohort, group = Cohort)) +
+  geom_line(linewidth = 0.85) +
+  geom_point(size = 2.1) +
+  scale_color_brewer(palette = "Dark2") +
+  guides(color = guide_legend(nrow = 2)) +
+  labs(x = "Peptide length (amino acids)", y = "Unique peptides (%)", color = NULL, title = "HLA-I peptide length profiles across cohorts")
+
+p_pol <- py$bern_pol |>
+  mutate(Label = paste0(table, "\n", cell_line, " ", intervention)) |>
+  pivot_longer(c(median_raw_l2_hm, median_trt_vs_ref), names_to = "Metric", values_to = "Median_L2FC") |>
+  mutate(Metric = recode(Metric, median_raw_l2_hm = "Raw log2(H/M)", median_trt_vs_ref = "Polarity-corrected log2(Trt/Ref)")) |>
+  ggplot(aes(x = Label, y = Median_L2FC, fill = Metric)) +
+  geom_col(position = "dodge", width = 0.65) +
+  geom_hline(yintercept = 0, linetype = "dotted") +
+  coord_flip() +
+  scale_fill_manual(values = c("Raw log2(H/M)" = ORANGE, "Polarity-corrected log2(Trt/Ref)" = BLUE)) +
+  labs(x = NULL, y = "Median log2 fold change (24 h)", fill = NULL, title = "Bernhardt Table 4 SILAC polarity check")
+
+tagged(p_len + p_pol)
+```
+
+**What do we see?**
+
+Tables 1.9–1.15 and Figure 1.1 document all six cohort-specific structural traps and donor HLA geometry:
+
+1. **Outlier run exclusion (Table 1.9):** Out of `36` Bathini PDO, `12` Bathini A375, `16` Chong ovarian, and `72` HAP1 runs, exactly one sample fails QC—`mhc1tip_peptide_A375_control_2`—because all precursor intensities are missing/zero in the original author deposit.
+2. **Acquisition-era confounding (Table 1.10):** In `Newey 2019`, all `10` untreated runs were acquired in `2017` whereas all `18` IFN-$\gamma$ and `16` trametinib runs were acquired in `2018`; comparing IFN-$\gamma$ against trametinib within `2018` removes this era shift.
+3. **SILAC channel inversion (Table 1.11 & Figure 1.1B):** In `Bernhardt 2025`, `Table 4` (`Ma-Mel-63a` IFN-$\gamma$, `n = 3,635` reliable ratios) exhibits median raw $\log_2(\mathrm{H}/\mathrm{M}) = -0.445$ while `H_pulse = 12.52M` vs. `M_pulse = 25.74M`, confirming `M = IFN-gamma` and `H = Control` inverted relative to `Tables 7–11`. Polarity correction restores positive `+0.445`.
+4. **Length, genotype reconciliation & anchor divergence (`0` shared 4-digit HLAs, Tables 1.12–1.14 & Figure 1.1A):** Canonical `9`-mers account for `52.3%` (`Bathini PDO`) to `64.8%` (`HAP1` and `Bernhardt`) of unique peptides across cohorts. Across cell lines, `Ma-Mel-63a` (`6,395` `9`-mers) is anchored by `P2 = Leu` (`48.4%`) whereas `SK-Mel-28 wt` (`2,337`) and `dr` (`2,774`) switch to `P2 = Thr/Val` (`26.3%/25.5%`) and `P9 = Lys` (`70.1%/62.1%`). For `UKE-Mel-105b`, Bernhardt et al.'s prose prints `HLA-B*25:01` (`0` records in IPD-IMGT/HLA), whereas deposited `Table 8` (`filtered.HLA_allele`) assigns `940` rows (`400` unique `9`-mers, canonical `P2 = Pro/Ala`, `P9 = Tyr/Phe`) to `HLA-B*35:01` (plus `30` rows to `HLA-A*02:01`); under either allele list, `SK-Mel-28` (`HLA-A*11:01, B*40:01, C*03:03`) shares **`0`** four-digit HLA alleles with training (`961 / 3,490` shared 9-mers across all staged tables `4, 7–12`; `869 / 3,167` [`877` `I=L`-harmonized] across contrast-eligible resistance tables `7–11`).
+5. **Cross-modality alignment (Table 1.15):** All `28` `Velz` primary medulloblastomas align identically across metadata, RNA-seq, and HLA-I MS (`SHH:9, G4:8, G3:7, WNT:4`), while curated `UniProt` topology spans `20,188` human genes (`17.8%` signal peptide, `46.0%` secretory/ER/membrane).
+6. **Batch & aliquot structure:** `HAP1` `TAP1/2` knockouts share run date `20201127` separate from the other nine knockouts (resolved via within-repertoire odds ratios and same-batch `2x2` controls), while `MONTE LUAD` cleanly separates serial `FT` from independent `noIP` aliquots.
+
+**Decision point:**
+
+I enforce five strict standardization rules downstream: (1) drop `mhc1tip_peptide_A375_control_2`; (2) compare IFN-$\gamma$ vs. trametinib within the `2018` `Newey` acquisition era and separate reused `Stopfer 2020` DMSO baselines; (3) flip `Bernhardt Table 4` sign polarity so all contrasts express `log2(Treatment / Control)`; (4) filter `9`-mer compositional analyses strictly to exact length `9` over the 20 standard amino acids (plus an explicit `I=L` sensitivity arm); and (5) restrict all `HAP1` `2x2` `Sec61` and length checks to batch-controlled or within-sample invariant metrics. Proceed to [Report 02](02_presentation_state_model.html).

@@ -1,0 +1,4 @@
+endpoint,mean_lobo_auroc_binary_logit_pooled_scaling,mean_lobo_auroc_binary_logit_within_cohort_baseline_z,mean_lobo_auroc_floor_imputed_ridge_within_cohort_baseline_z
+retained,0.5915727300930367,0.7253718001746953,0.724588485500488
+high_persist,0.7685079580767711,0.8709267250858268,0.8716244673515043
+durable,0.5405982146620396,0.596023747253535,0.5884326567326393
